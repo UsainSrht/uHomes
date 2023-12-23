@@ -19,19 +19,59 @@ sum_limit_permissions: true
 
 home_name_character_limit: 32
 
+# true: opens an input gui to player asking for name of the home
+# false: saves the home without a name (can be changed later)
+ask_for_name_before_save: false
+
 gui:
-  title: "<yellow><bold>"
+  title: "<yellow><bold>Homes"
   fill:
     # use AIR to not fill the inventory
     material: BLACK_STAINED_GLASS_PANE
     name: " "
+
+  # set amount of home icon itemstack to current index
+  # this will override custom icons' itemstack amounts
+  # for example homes will be listed like 1, 2, 3, 4 amount of items
+  index_amount: true
+
+  default_home_icon:
+    material: WHITE_BED
+    name: "<yellow><name>"
+    lore:
+      - ""
+      - " <white>World: <world> "
+      - " <white>X: <gold><x> "
+      - " <white>Y: <gold><y> "
+      - " <white>Z: <gold><z> "
+      - ""
+      - " <white>Created At: "
+      - "  <gold><Created:'yyyy-MM-dd HH:mm:ss'> "
+      - ""
+      - " <white>Last Teleport: "
+      - "  <gold><LastTeleport:'yyyy-MM-dd HH:mm:ss'> "
+      - ""
+      - " <yellow>Left Click to teleport "
+      - " <yellow>Right Click to rename "
+      - " <yellow>Shift + Left Click to relocate "
+      - " <yellow>Shift + Right Click to delete "
+      - " <yellow>Click with item to set icon "
+      - ""
   no_home:
     material: BARRIER
     name: "<red>You have no home!"
     lore:
       - ""
-      - " &eClick to sethome "
+      - " &eClick to sethome! "
       - ""
+  sethome:
+    material: CARTOGRAPHY_TABLE
+    name: ""
+
+world_names:
+  world: "<green>World"
+  world_nether: "<red>Nether"
+  world_the_end: "<yellow>End"
 
 commands:
   home:
@@ -45,7 +85,7 @@ commands:
       - uhomes
   sethome:
     name: "sethome"
-    description: "Base home command."
+    description: "Home command to save homes."
     usage: "/sethome <homeName>"
     permission: "uhomes.sethome"
     permission_message: "<red>You don't have <underlined><permission></underlined> permission!"

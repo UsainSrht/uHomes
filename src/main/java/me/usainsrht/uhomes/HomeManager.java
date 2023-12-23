@@ -1,22 +1,18 @@
 package me.usainsrht.uhomes;
 
-import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTCompoundList;
 import de.tr7zw.changeme.nbtapi.NBTFile;
+import de.tr7zw.changeme.nbtapi.NBTList;
 import de.tr7zw.changeme.nbtapi.NBTListCompound;
 import me.usainsrht.uhomes.util.NBTUtil;
+import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class HomeManager {
@@ -59,11 +55,48 @@ public class HomeManager {
     public void addHome(UUID uuid, Home home) {
         if (loadedHomes.containsKey(uuid)) {
             loadedHomes.get(uuid).add(home);
+        } else {
+            List<Home> homeList = new ArrayList<>();
+            homeList.add(home);
+            loadedHomes.put(uuid, homeList);
         }
+        saveHome(home);
+    }
+
+    public void saveHome(Home home) {
+        UUID uuid = home.getOwner();
         NBTFile nbtFile = getNBTFile(uuid);
-        NBTListCompound compound = nbtFile.getCompoundList("Homes").addCompound();
-        compound.setString("Name", home.getName());
+        NBTCompoundList compoundList = nbtFile.getCompoundList("Homes");
+        NBTListCompound compound = null;
+        for (int i = 0; i < compoundList.size(); i++) {
+            NBTListCompound current = compoundList.get(i);
+            // check for existing home to update
+            if (home.getCreated() == current.getLong("Created")) compound = current;
+        }
+        // add new home to the list
+        if (compound == null) compound = nbtFile.getCompoundList("Homes").addCompound();
+
         compound.setLong("Created", home.getCreated());
+        Location location = home.getLocation();
+        compound.setString("World", location.getWorld().getName());
+        NBTList<Double> pos = compound.getDoubleList("Pos");
+        pos.add(location.getX());
+        pos.add(location.getY());
+        pos.add(location.getZ());
+        NBTList<Float> rotation = compound.getFloatList("Rotation");
+        rotation.add(location.getYaw());
+        rotation.add(location.getPitch());
+
+        if (home.getName() != null) compound.setString("Name", home.getName());
+        if (home.getIcon() != null) compound.setItemStack("Icon", home.getIcon());
+        if (home.getLastTeleport() != -1) compound.setLong("LastTeleport", home.getLastTeleport());
+
+        try {
+            nbtFile.save();
+        } catch (IOException e) {
+            plugin.getLogger().severe("An error occurred while saving home of "+Bukkit.getOfflinePlayer(uuid).getName()+" ("+uuid+")");
+            e.printStackTrace();
+        }
     }
 
     @Nullable
