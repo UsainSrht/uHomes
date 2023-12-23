@@ -1,0 +1,54 @@
+prefix: "<yellow>µHomes <dark_gray>»"
+
+
+messages:
+
+
+sounds:
+
+# permission to calculate home limit of a player
+# for example if player has a "home.limit.5" permission he/she
+# can't save more than 5 homes.
+home_limit_permission: "home.limit."
+
+# true: sum all home limit permissions.
+#  ex: if player has "home.limit.2" and "home.limit.4" permissions
+#      his/her home limit would be 6.
+# false: use highest home limit permission
+sum_limit_permissions: true
+
+home_name_character_limit: 32
+
+gui:
+  title: "<yellow><bold>"
+  fill:
+    # use AIR to not fill the inventory
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
+  no_home:
+    material: BARRIER
+    name: "<red>You have no home!"
+    lore:
+      - ""
+      - " &eClick to sethome "
+      - ""
+
+commands:
+  home:
+    name: "home"
+    description: "Base home command."
+    usage: "/home [<homeName>]"
+    permission: "uhomes.home"
+    permission_message: "<red>You don't have <underlined><permission></underlined> permission!"
+    aliases:
+      - homes
+      - uhomes
+  sethome:
+    name: "sethome"
+    description: "Base home command."
+    usage: "/sethome <homeName>"
+    permission: "uhomes.sethome"
+    permission_message: "<red>You don't have <underlined><permission></underlined> permission!"
+    aliases:
+      - usethome
+      - setuhome
