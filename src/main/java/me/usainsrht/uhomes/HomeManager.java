@@ -64,6 +64,7 @@ public class HomeManager {
     }
 
     public void saveHome(Home home) {
+        //todo save players' all homes at once
         UUID uuid = home.getOwner();
         NBTFile nbtFile = getNBTFile(uuid);
         NBTCompoundList compoundList = nbtFile.getCompoundList("Homes");

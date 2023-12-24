@@ -23,10 +23,10 @@ public class MainConfig {
 
     private static String homesGuiTitle;
     private static boolean homesGuiIndexAmount;
-    private static ItemStack homesGuiFillItem;
-    private static ItemStack defaultHomeItem;
-    private static ItemStack noHomeItem;
-    private static ItemStack setHomeItem;
+    private static ConfigurationSection homesGuiFillItem;
+    private static ConfigurationSection defaultHomeItem;
+    private static ConfigurationSection noHomeItem;
+    private static ConfigurationSection setHomeItem;
 
     private static HashMap<String, String> worldNames;
 
@@ -77,10 +77,11 @@ public class MainConfig {
 
         homesGuiTitle = config.getString("gui.title");
         homesGuiIndexAmount = config.getBoolean("gui.index_amount");
-        homesGuiFillItem = ItemUtil.getItemFromYaml(config.getConfigurationSection("gui.fill"));
-        defaultHomeItem = ItemUtil.getItemFromYaml(config.getConfigurationSection("gui.default_home_icon"));
-        noHomeItem = ItemUtil.getItemFromYaml(config.getConfigurationSection("gui.no_home"));
-        setHomeItem = ItemUtil.getItemFromYaml(config.getConfigurationSection("gui.sethome"));
+        // needs to be parsed to item with different placeholders everytime
+        homesGuiFillItem = config.getConfigurationSection("gui.fill");
+        defaultHomeItem = config.getConfigurationSection("gui.default_home_icon");
+        noHomeItem = config.getConfigurationSection("gui.no_home");
+        setHomeItem = config.getConfigurationSection("gui.sethome");
 
         worldNames = new HashMap<>();
         config.getConfigurationSection("world_names").getKeys(false).forEach(key -> {
@@ -137,20 +138,20 @@ public class MainConfig {
         return homeNameCharLimit;
     }
 
-    public static ItemStack getDefaultHomeItem() {
-        return defaultHomeItem.clone();
+    public static ConfigurationSection getDefaultHomeItem() {
+        return defaultHomeItem;
     }
 
-    public static ItemStack getHomesGuiFillItem() {
-        return homesGuiFillItem.clone();
+    public static ConfigurationSection getHomesGuiFillItem() {
+        return homesGuiFillItem;
     }
 
-    public static ItemStack getNoHomeItem() {
-        return noHomeItem.clone();
+    public static ConfigurationSection getNoHomeItem() {
+        return noHomeItem;
     }
 
-    public static ItemStack getSetHomeItem() {
-        return setHomeItem.clone();
+    public static ConfigurationSection getSetHomeItem() {
+        return setHomeItem;
     }
 
     public static String getHomeLimitPermission() {
@@ -159,5 +160,13 @@ public class MainConfig {
 
     public static String getHomesGuiTitle() {
         return homesGuiTitle;
+    }
+
+    public static YamlCommand getHomeCommand() {
+        return homeCommand;
+    }
+
+    public static YamlCommand getSetHomeCommand() {
+        return setHomeCommand;
     }
 }
