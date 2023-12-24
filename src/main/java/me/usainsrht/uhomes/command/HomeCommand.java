@@ -8,6 +8,7 @@ import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.gui.HomesGUI;
 import me.usainsrht.uhomes.util.MessageUtil;
+import me.usainsrht.uhomes.util.SoundUtil;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -44,14 +45,14 @@ public class HomeCommand extends Command {
             Component permMsg = MiniMessage.miniMessage().deserialize(permissionMessage,
                     Placeholder.unparsed("permission", permission));
             sender.sendMessage(permMsg);
-            MessageUtil.play(sender, permissionSounds);
+            SoundUtil.play(sender, permissionSounds);
             return false;
         }
         if (args.length > 0) {
             if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("uhomes.reload")) {
                 UHomes.getInstance().reload();
                 MessageUtil.send(sender, MainConfig.getMessage("reload"));
-                MessageUtil.play(sender, MainConfig.getSound("reload"));
+                SoundUtil.play(sender, MainConfig.getSound("reload"));
             } else {
 
             }

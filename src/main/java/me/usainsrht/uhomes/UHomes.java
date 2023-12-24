@@ -2,7 +2,6 @@ package me.usainsrht.uhomes;
 
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
-import me.usainsrht.uhomes.command.CommandHandler;
 import me.usainsrht.uhomes.command.HomeCommand;
 import me.usainsrht.uhomes.config.MainConfig;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,7 +49,7 @@ public final class UHomes extends JavaPlugin {
 
     public void registerCommands() {
         HomeCommand homeCommand = new HomeCommand(MainConfig.getHomeCommand());
-        CommandHandler.register("uhomes", homeCommand);
+        //CommandHandler.register("uhomes", homeCommand);
         commodore.register(homeCommand, homeCommand.getCommodoreCommand());
     }
 

@@ -80,14 +80,16 @@ public class MainConfig {
                 config.getString("commands.home.usage"),
                 config.getStringList("commands.home.aliases"),
                 config.getString("commands.home.permission"),
-                config.getString("commands.home.permission_message"));
+                config.getString("commands.home.permission_message"),
+                SoundUtil.getSounds(config.get("commands.home.permission_sounds")));
         setHomeCommand = new YamlCommand(
                 config.getString("commands.sethome.name"),
                 config.getString("commands.sethome.description"),
                 config.getString("commands.sethome.usage"),
                 config.getStringList("commands.sethome.aliases"),
                 config.getString("commands.sethome.permission"),
-                config.getString("commands.sethome.permission_message"));
+                config.getString("commands.sethome.permission_message"),
+                SoundUtil.getSounds(config.get("commands.sethome.permission_sounds")));
 
     }
 

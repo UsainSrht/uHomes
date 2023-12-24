@@ -6,7 +6,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class SoundUtil {
 
@@ -41,8 +43,11 @@ public class SoundUtil {
         return sound.build();
     }
 
-    public static Collection<Sound> getSounds(ConfigurationSection config) {
-
+    public static Collection<Sound> getSounds(Object obj) {
+        List<Sound> soundList = new ArrayList<>();
+        if (obj instanceof String string) soundList.add(SoundUtil.getSound(string));
+        else if (obj instanceof Collection<?>) ((List<String>)obj).forEach(string -> soundList.add(SoundUtil.getSound(string)));
+        return soundList;
     }
 
 }
