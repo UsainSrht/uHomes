@@ -44,6 +44,8 @@ public final class UHomes extends JavaPlugin {
     public void loadConfig() {
         saveDefaultConfig();
 
+        MainConfig.create(getConfig());
+
         HOMES_FOLDER = new File(getDataFolder(), "homes");
         HOMES_FOLDER.mkdirs();
     }
@@ -52,6 +54,7 @@ public final class UHomes extends JavaPlugin {
         HomeCommand homeCommand = new HomeCommand(MainConfig.getHomeCommand());
         CommandHandler.register("uhomes", homeCommand);
         commodore.register(homeCommand, homeCommand.getCommodoreCommand());
+        getLogger().info("home command registered " + homeCommand + " " + homeCommand.isRegistered());
     }
 
     public Metrics getMetrics() {

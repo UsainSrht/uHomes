@@ -1,5 +1,6 @@
 package me.usainsrht.uhomes.config;
 
+import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.command.YamlCommand;
 import me.usainsrht.uhomes.util.ItemUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
@@ -90,7 +91,6 @@ public class MainConfig {
                 config.getString("commands.sethome.permission"),
                 config.getString("commands.sethome.permission_message"),
                 SoundUtil.getSounds(config.get("commands.sethome.permission_sounds")));
-
     }
 
     public static String getPrefix() {

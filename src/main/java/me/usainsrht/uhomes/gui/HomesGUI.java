@@ -4,6 +4,7 @@ import me.usainsrht.uhomes.Home;
 import me.usainsrht.uhomes.HomeManager;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
+import me.usainsrht.uhomes.util.InventoryUtil;
 import me.usainsrht.uhomes.util.ItemUtil;
 import me.usainsrht.uhomes.util.MMUtil;
 import net.kyori.adventure.text.Component;
@@ -31,6 +32,8 @@ public class HomesGUI {
         Component title = MiniMessage.miniMessage().deserialize(MainConfig.getHomesGuiTitle());
         Inventory inventory = Bukkit.createInventory(null, 3*9, title);
 
+        InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
+
         HomeManager homeManager = UHomes.getInstance().getHomeManager();
         CompletableFuture<List<Home>> future = homeManager.getHomes(uuid);
         future.thenAccept(homes -> {
@@ -44,6 +47,12 @@ public class HomesGUI {
     public static void open(Player player, List<Home> homes, int size) {
         Component title = MiniMessage.miniMessage().deserialize(MainConfig.getHomesGuiTitle());
         Inventory inventory = Bukkit.createInventory(null, size, title);
+
+        InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
+
+        if (homes.size() == 0) {
+            inventory.setItem(13, ItemUtil.getItemFromYaml(MainConfig.getNoHomeItem()));
+        }
 
         int i = 0;
         for (Home home : homes) {
