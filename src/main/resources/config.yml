@@ -1,10 +1,10 @@
 prefix: "<yellow>µHomes <dark_gray>»"
 
-
 messages:
-
+  reload: "<green>Config reloaded!"
 
 sounds:
+  reload: entity.villager.yes
 
 # permission to calculate home limit of a player
 # for example if player has a "home.limit.5" permission he/she
@@ -80,6 +80,7 @@ commands:
     usage: "/home [<homeName>]"
     permission: "uhomes.home"
     permission_message: "<red>You don't have <underlined><permission></underlined> permission!"
+    permission_sounds: entity.villager.no
     aliases:
       - homes
       - uhomes
@@ -89,6 +90,8 @@ commands:
     usage: "/sethome <homeName>"
     permission: "uhomes.sethome"
     permission_message: "<red>You don't have <underlined><permission></underlined> permission!"
+    permission_sounds:
+      - entity.villager.no
     aliases:
       - usethome
       - setuhome
