@@ -35,7 +35,8 @@ public class HomeCommand extends Command {
     public LiteralCommandNode<?> getCommodoreCommand() {
         return LiteralArgumentBuilder.literal(super.getName())
                 .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString()))
-                .then(RequiredArgumentBuilder.argument("player", StringArgumentType.word()))
+                .then(RequiredArgumentBuilder.argument("player", StringArgumentType.word())
+                        .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString())))
                 .build();
     }
 

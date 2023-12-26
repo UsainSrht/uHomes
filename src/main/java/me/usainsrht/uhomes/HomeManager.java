@@ -4,10 +4,14 @@ import de.tr7zw.changeme.nbtapi.NBTCompoundList;
 import de.tr7zw.changeme.nbtapi.NBTFile;
 import de.tr7zw.changeme.nbtapi.NBTList;
 import de.tr7zw.changeme.nbtapi.NBTListCompound;
+import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.util.NBTUtil;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permissible;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -112,6 +116,47 @@ public class HomeManager {
         }
         return nbtFile;
     }
+
+    public int getHomeLimit(UUID uuid) {
+        return getHomeLimit(Bukkit.getEntity(uuid));
+    }
+
+    public int getHomeLimit(Permissible permissible) {
+        if (MainConfig.isSumHomeLimits()) {
+            int total = 0;
+            for (PermissionAttachmentInfo permInfo : permissible.getEffectivePermissions()) {
+                String perm = permInfo.getPermission();
+                if (!perm.startsWith(MainConfig.getHomeLimitPermission())) continue;
+                String substr = perm.substring(MainConfig.getHomeLimitPermission().length());
+                try {
+                    int number = Integer.parseInt(substr);
+                    total += number;
+                } catch (NumberFormatException ignore) {}
+            }
+            return total;
+        } else {
+            int highest = 0;
+            for (PermissionAttachmentInfo permInfo : permissible.getEffectivePermissions()) {
+                String perm = permInfo.getPermission();
+                if (!perm.startsWith(MainConfig.getHomeLimitPermission())) continue;
+                String substr = perm.substring(MainConfig.getHomeLimitPermission().length());
+                try {
+                    int number = Integer.parseInt(substr);
+                    if (number > highest) highest = number;
+                } catch (NumberFormatException ignore) {}
+            }
+            return highest;
+        }
+    }
+
+    public CompletableFuture<Boolean> canRegisterHome(UUID uuid) {
+        CompletableFuture<List<Home>> future = getHomes(uuid);
+        CompletableFuture<Boolean> canRegisterFuture = new CompletableFuture<>();
+        future.thenAccept(homes -> canRegisterFuture.complete(homes.size() < getHomeLimit(uuid)));
+        return canRegisterFuture;
+    }
+
+
 
     public UHomes getPlugin() {
         return plugin;

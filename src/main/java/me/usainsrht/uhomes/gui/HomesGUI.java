@@ -54,6 +54,8 @@ public class HomesGUI {
             inventory.setItem(13, ItemUtil.getItemFromYaml(MainConfig.getNoHomeItem()));
         }
 
+        inventory.setItem(size-5, ItemUtil.getItemFromYaml(MainConfig.getSetHomeItem()));
+
         int i = 0;
         for (Home home : homes) {
             Location location = home.getLocation();

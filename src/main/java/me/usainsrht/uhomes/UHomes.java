@@ -4,7 +4,9 @@ import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import me.usainsrht.uhomes.command.CommandHandler;
 import me.usainsrht.uhomes.command.HomeCommand;
+import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.config.MainConfig;
+import net.luckperms.api.LuckPerms;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -15,6 +17,7 @@ public final class UHomes extends JavaPlugin {
     private static final int pluginID = 20539;
     private Metrics metrics;
     private HomeManager homeManager;
+    private LuckPerms luckPerms;
     private Commodore commodore;
     public File HOMES_FOLDER;
 
@@ -54,7 +57,10 @@ public final class UHomes extends JavaPlugin {
         HomeCommand homeCommand = new HomeCommand(MainConfig.getHomeCommand());
         CommandHandler.register("uhomes", homeCommand);
         commodore.register(homeCommand, homeCommand.getCommodoreCommand());
-        getLogger().info("home command registered " + homeCommand + " " + homeCommand.isRegistered());
+
+        SetHomeCommand setHomeCommand = new SetHomeCommand(MainConfig.getSetHomeCommand());
+        CommandHandler.register("uhomes", setHomeCommand);
+        commodore.register(setHomeCommand, setHomeCommand.getCommodoreCommand());
     }
 
     public Metrics getMetrics() {

@@ -21,6 +21,7 @@ public class MainConfig {
     private static String homeLimitPermission;
     private static boolean sumHomeLimits;
     private static int homeNameCharLimit;
+    private static String homeNameValidChars;
     private static boolean askForNameBeforeSave;
 
     private static String homesGuiTitle;
@@ -59,6 +60,7 @@ public class MainConfig {
         homeLimitPermission = config.getString("home_limit_permission");
         sumHomeLimits = config.getBoolean("sum_limit_permissions");
         homeNameCharLimit = config.getInt("home_name_character_limit");
+        homeNameValidChars = config.getString("home_name_valid_characters");
         askForNameBeforeSave = config.getBoolean("ask_for_name_before_save");
 
         homesGuiTitle = config.getString("gui.title");
@@ -123,6 +125,10 @@ public class MainConfig {
 
     public static int getHomeNameCharLimit() {
         return homeNameCharLimit;
+    }
+
+    public static String getHomeNameValidChars() {
+        return homeNameValidChars;
     }
 
     public static ConfigurationSection getDefaultHomeItem() {

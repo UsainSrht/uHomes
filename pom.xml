@@ -111,5 +111,11 @@
             <artifactId>commodore</artifactId>
             <version>2.2</version>
         </dependency>
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>
