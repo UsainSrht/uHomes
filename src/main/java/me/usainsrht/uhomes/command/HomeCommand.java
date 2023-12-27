@@ -4,6 +4,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import me.usainsrht.uhomes.Home;
+import me.usainsrht.uhomes.HomeManager;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.gui.HomesGUI;
@@ -17,7 +19,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class HomeCommand extends Command {
 
@@ -34,9 +39,9 @@ public class HomeCommand extends Command {
 
     public LiteralCommandNode<?> getCommodoreCommand() {
         return LiteralArgumentBuilder.literal(super.getName())
-                .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString()))
-                .then(RequiredArgumentBuilder.argument("player", StringArgumentType.word())
-                        .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString())))
+                .then(RequiredArgumentBuilder.argument("home-name", HomeNameArgumentType.homeName(UHomes.getInstance().getHomeManager())))
+                /*.then(RequiredArgumentBuilder.argument("player", StringArgumentType.word())
+                        .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString())))*/
                 .build();
     }
 
@@ -55,6 +60,21 @@ public class HomeCommand extends Command {
                 MessageUtil.send(sender, MainConfig.getMessage("reload"));
                 SoundUtil.play(sender, MainConfig.getSound("reload"));
             } else {
+                if (sender instanceof Player player) {
+                    String name = String.join(" ", args);
+                    HomeManager homeManager = UHomes.getInstance().getHomeManager();
+                    CompletableFuture<List<Home>> homesFuture = homeManager.getHomes(player.getUniqueId());
+                    homesFuture.thenAccept(homes -> {
+                        for (Home home : homes) {
+                            if (home.getName() != null && home.getName().equalsIgnoreCase(name)) {
+                                homeManager.teleport(player, home);
+                                return;
+                            }
+                        }
+                        MessageUtil.send(sender, MainConfig.getMessage("no_home_with_that_name"), Placeholder.unparsed("home_name", name));
+                        SoundUtil.play(sender, MainConfig.getSound("no_home_with_that_name"));
+                    });
+                }
 
             }
         } else {

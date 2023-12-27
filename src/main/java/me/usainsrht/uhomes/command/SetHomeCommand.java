@@ -62,7 +62,7 @@ public class SetHomeCommand extends Command {
         UUID uuid = player.getUniqueId();
         String name = null;
         if (args.length > 0) {
-            name = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+            name = String.join(" ", args);
             if (name.length() > MainConfig.getHomeNameCharLimit()) {
                 MessageUtil.send(sender, MainConfig.getMessage("home_name_limit"),
                         Formatter.number("amount", MainConfig.getHomeNameCharLimit()),
@@ -85,12 +85,13 @@ public class SetHomeCommand extends Command {
             if (homes.stream().anyMatch(home -> home.getName() != null && home.getName().equalsIgnoreCase(finalName))) {
                 MessageUtil.send(sender, MainConfig.getMessage("home_name_already_in_use"), Placeholder.unparsed("home_name", finalName));
                 SoundUtil.play(sender, MainConfig.getSound("home_name_already_in_use"));
-                return false;
+                return;
             }
-
             Home home = new Home(uuid, player.getLocation().clone());
             if (finalName != null) home.setName(finalName);
             homeManager.addHome(uuid, home);
+            MessageUtil.send(sender, MainConfig.getMessage("sethome"), Placeholder.unparsed("home_name", finalName));
+            SoundUtil.play(sender, MainConfig.getSound("sethome"));
         });
         return true;
     }

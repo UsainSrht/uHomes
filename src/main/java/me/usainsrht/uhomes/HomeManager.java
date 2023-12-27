@@ -6,10 +6,10 @@ import de.tr7zw.changeme.nbtapi.NBTList;
 import de.tr7zw.changeme.nbtapi.NBTListCompound;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.util.NBTUtil;
-import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Entity;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 
@@ -37,7 +37,9 @@ public class HomeManager {
         } else {
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                 NBTFile nbtFile = getNBTFile(uuid);
+                Bukkit.broadcastMessage("nbtFile " + nbtFile.toString());
                 NBTCompoundList compoundList = nbtFile.getCompoundList("Homes");
+                Bukkit.broadcastMessage("compoundList size " + compoundList.size());
                 List<Home> homeList = new ArrayList<>();
                 compoundList.forEach(compound -> {
                     Location location = NBTUtil.getLocation(compound);
@@ -45,7 +47,7 @@ public class HomeManager {
                     home.setCreated(compound.getLong("Created"));
                     if (compound.hasTag("LastTeleport")) home.setLastTeleport(compound.getLong("LastTeleport"));
                     if (compound.hasTag("Icon")) home.setIcon(compound.getItemStack("Icon"));
-                    if (compound.hasTag("Name")) home.setIcon(compound.getItemStack("Name"));
+                    if (compound.hasTag("Name")) home.setName(compound.getString("Name"));
                     homeList.add(home);
                 });
                 loadedHomes.put(uuid, homeList);
@@ -85,12 +87,12 @@ public class HomeManager {
         Location location = home.getLocation();
         compound.setString("World", location.getWorld().getName());
         NBTList<Double> pos = compound.getDoubleList("Pos");
-        pos.add(location.getX());
-        pos.add(location.getY());
-        pos.add(location.getZ());
+        pos.set(0, location.getX());
+        pos.set(1, location.getY());
+        pos.set(2, location.getZ());
         NBTList<Float> rotation = compound.getFloatList("Rotation");
-        rotation.add(location.getYaw());
-        rotation.add(location.getPitch());
+        rotation.set(0, location.getYaw());
+        rotation.set(1, location.getPitch());
 
         if (home.getName() != null) compound.setString("Name", home.getName());
         if (home.getIcon() != null) compound.setItemStack("Icon", home.getIcon());
@@ -102,6 +104,25 @@ public class HomeManager {
             plugin.getLogger().severe("An error occurred while saving home of "+Bukkit.getOfflinePlayer(uuid).getName()+" ("+uuid+")");
             e.printStackTrace();
         }
+    }
+
+    public void save() {
+        long start = System.currentTimeMillis();
+        int saved = 0;
+        int removedFromCache = 0;
+        plugin.getLogger().info("Saving homes...");
+        Iterator<Map.Entry<UUID, List<Home>>> iterator = loadedHomes.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, List<Home>> entry = iterator.next();
+            entry.getValue().forEach(this::saveHome);
+            saved += entry.getValue().size();
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(entry.getKey());
+            if (offlinePlayer.isOnline()) continue;
+            iterator.remove();
+            removedFromCache++;
+        }
+        plugin.getLogger().info("Saved " + saved + " homes in " + (System.currentTimeMillis()-start)
+                + "ms (removed " + removedFromCache + " players from cache)");
     }
 
     @Nullable
@@ -154,6 +175,10 @@ public class HomeManager {
         CompletableFuture<Boolean> canRegisterFuture = new CompletableFuture<>();
         future.thenAccept(homes -> canRegisterFuture.complete(homes.size() < getHomeLimit(uuid)));
         return canRegisterFuture;
+    }
+
+    public void teleport(Entity entity, Home home) {
+        entity.teleport(home.getLocation());
     }
 
 

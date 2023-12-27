@@ -34,13 +34,14 @@ public class HomesGUI {
 
         InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
 
+        player.openInventory(inventory);
+
         HomeManager homeManager = UHomes.getInstance().getHomeManager();
         CompletableFuture<List<Home>> future = homeManager.getHomes(uuid);
         future.thenAccept(homes -> {
             int rows = 2 + Math.min((int)Math.ceil(homes.size() / 7f), 4);
             open(player, homes, rows*9);
         });
-        player.openInventory(inventory);
 
     }
 

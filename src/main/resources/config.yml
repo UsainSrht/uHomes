@@ -13,6 +13,8 @@ messages:
     - "<red>Invalid characters found in <#F78383><italic><home_name></italic><red>."
     - "<#F78383><italic><invalid_characters>"
   home_name_already_in_use: "<red>You already have a home named <#F78383><italic><home_name></italic><red>."
+  sethome: "<gray>Home <#F78383><italic><home_name></italic> <gray>successfully saved."
+  no_home_with_that_name: "<red>You don't have a home named <#F78383><italic><home_name></italic><red>."
 
 sounds:
   reload: entity.villager.yes
@@ -20,6 +22,8 @@ sounds:
   home_name_limit: entity.villager.no
   home_name_not_valid: entity.villager.no
   home_name_already_in_use: entity.villager.no
+  sethome: block.respawn_anchor.set_spawn
+  no_home_with_that_name: entity.villager.no
 
 # permission to calculate home limit of a player
 # for example if player has a "home.limit.5" permission he/she
@@ -34,7 +38,7 @@ sum_limit_permissions: true
 
 home_name_character_limit: 32
 
-home_name_valid_characters: "/^[\w\-\s]+$/"
+home_name_valid_characters: "^[\\w\\-\\s]+$"
 
 # true: opens an input gui to player asking for name of the home
 # false: saves the home without a name (can be changed later)

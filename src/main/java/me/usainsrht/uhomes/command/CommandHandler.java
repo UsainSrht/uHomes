@@ -3,51 +3,24 @@ package me.usainsrht.uhomes.command;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
-import org.bukkit.command.SimpleCommandMap;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class CommandHandler {
-
-    public static CommandMap getCommandMap() {
-        CommandMap commandMap = null;
-        try {
-            Field commandMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            commandMapField.setAccessible(true);
-            commandMap = (CommandMap) commandMapField.get(Bukkit.getServer());
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return commandMap;
-    }
-
-    public static HashMap<String, Command> getKnownCommands(CommandMap commandMap) {
-        HashMap<String, Command> knownCommands = null;
-        try {
-            Field knownCommandsField = ((SimpleCommandMap)commandMap).getClass().getDeclaredField("knownCommands");
-            knownCommandsField.setAccessible(true);
-            knownCommands = (HashMap<String, Command>) knownCommandsField.get(commandMap);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return knownCommands;
-    }
-
     public static void register(String registrar, Command... cmds) {
-        CommandMap commandMap = getCommandMap();
+        CommandMap commandMap = Bukkit.getCommandMap();
         for (Command cmd : cmds) {
             commandMap.register(registrar, cmd);
         }
     }
 
     public static void register(String registrar, List<Command> commands) {
-        getCommandMap().registerAll(registrar, commands);
+        Bukkit.getCommandMap().registerAll(registrar, commands);
     }
 
     public static void unregister(Collection<Command> commands, boolean removeOtherPlugins, boolean removeAliases) {
-        CommandMap commandMap = getCommandMap();
-        HashMap<String, Command> knownCommands = getKnownCommands(commandMap);
+        CommandMap commandMap = Bukkit.getCommandMap();
+        Map<String, Command> knownCommands = commandMap.getKnownCommands();
         commands.forEach(command -> {
             command.unregister(commandMap);
             if (removeOtherPlugins) {
