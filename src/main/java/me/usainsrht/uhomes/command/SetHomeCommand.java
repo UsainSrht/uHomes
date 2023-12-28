@@ -82,6 +82,13 @@ public class SetHomeCommand extends Command {
         String finalName = name;
         CompletableFuture<List<Home>> homesFuture = homeManager.getHomes(uuid);
         homesFuture.thenAccept(homes -> {
+            int homeLimit = homeManager.getHomeLimit(uuid);
+            if (homes.size() >= homeLimit) {
+                MessageUtil.send(sender, MainConfig.getMessage("home_limit"), Formatter.number("home_limit", homeLimit));
+                SoundUtil.play(sender, MainConfig.getSound("home_limit"));
+                return;
+            }
+
             if (homes.stream().anyMatch(home -> home.getName() != null && home.getName().equalsIgnoreCase(finalName))) {
                 MessageUtil.send(sender, MainConfig.getMessage("home_name_already_in_use"), Placeholder.unparsed("home_name", finalName));
                 SoundUtil.play(sender, MainConfig.getSound("home_name_already_in_use"));

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
+import static net.kyori.adventure.text.format.TextDecoration.State.FALSE;
 import static net.kyori.adventure.text.format.TextDecoration.State.NOT_SET;
 
 public class ItemUtil {
@@ -30,7 +31,7 @@ public class ItemUtil {
 
         if (config.isSet("name")) {
             String name = config.getString("name");
-            Component parsedName = MiniMessage.miniMessage().deserialize(name, placeholders).decorationIfAbsent(ITALIC, NOT_SET);
+            Component parsedName = MiniMessage.miniMessage().deserialize(name, placeholders).decorationIfAbsent(ITALIC, FALSE);
             itemMeta.displayName(parsedName);
         }
 
@@ -38,7 +39,7 @@ public class ItemUtil {
             List<String> lore = config.getStringList("lore");
             List<Component> parsedLore = new ArrayList<>();
             for (String line : lore) {
-                parsedLore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, NOT_SET));
+                parsedLore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, FALSE));
             }
             itemMeta.lore(parsedLore);
         }

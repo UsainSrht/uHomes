@@ -78,7 +78,7 @@ gui:
       - "  <gold><created:'yyyy-MM-dd HH:mm:ss'> "
       - ""
       - " <white>Last Teleport: "
-      - "  <gold><last_teleport:'yyyy-MM-dd HH:mm:ss'> "
+      - "  <gold><last_teleport:'yyyy-MM-dd HH:mm:ss':'<red>Not teleported yet'> "
       - ""
       - " <yellow>Left Click to teleport "
       - " <yellow>Right Click to rename "

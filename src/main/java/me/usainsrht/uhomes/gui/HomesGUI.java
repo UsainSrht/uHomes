@@ -22,12 +22,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
+import static net.kyori.adventure.text.format.TextDecoration.State.FALSE;
 import static net.kyori.adventure.text.format.TextDecoration.State.NOT_SET;
 
 public class HomesGUI {
@@ -65,46 +67,48 @@ public class HomesGUI {
 
         int i = 0;
         for (Home home : homes) {
-            Location location = home.getLocation();
-            ConfigurationSection defaultIcon = MainConfig.getDefaultHomeItem();
-            TagResolver[] placeholders = new TagResolver[8];
-            placeholders[0] = Formatter.number("x", location.getX());
-            placeholders[1] = Formatter.number("y", location.getY());
-            placeholders[2] = Formatter.number("z", location.getZ());
-            placeholders[3] = Placeholder.parsed("world", MainConfig.getWorldName(location.getWorld().getName()));
-            placeholders[4] = Formatter.date("created", LocalDateTime.from(Instant.ofEpochMilli(home.getCreated())));
-            // date formatter with fallback because of LastTeleport can be -1 (haven't teleported yet)
-            placeholders[5] = MMUtil.date("last_teleport", LocalDateTime.from(Instant.ofEpochMilli(home.getLastTeleport())));
-            placeholders[6] = Placeholder.parsed("index", String.valueOf(i));
-            placeholders[7] = Placeholder.parsed("name",
-                    home.getName() == null ? MainConfig.getUnnamedHomeName().replace("<index>", String.valueOf(i)) : home.getName());
-
-            ItemStack icon;
-            if (home.getIcon() != null) {
-                icon = home.getIcon();
-                ItemMeta iconMeta = icon.getItemMeta();
-
-                Component displayName = MiniMessage.miniMessage().deserialize(defaultIcon.getString("name"), placeholders).decorationIfAbsent(ITALIC, NOT_SET);
-                iconMeta.displayName(displayName);
-
-                List<Component> lore = new ArrayList<>();
-                for (String line : defaultIcon.getStringList("lore")) {
-                    lore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, NOT_SET));
-                }
-                iconMeta.lore(lore);
-            } else {
-                icon = ItemUtil.getItemFromYaml(defaultIcon, placeholders);
-            }
-
-            inventory.setItem(getSlot(i), icon);
-
+            inventory.setItem(getSlot(i), getButton(home, i));
             i++;
         }
         player.openInventory(inventory);
     }
 
     public static int getSlot(int index) {
-        return index < 8 ? 9+index : (index < 15 ? 11+index : (index < 22 ? 13+index : 15+index));
+        return index < 8 ? 10+index : (index < 15 ? 12+index : (index < 22 ? 14+index : 16+index));
+    }
+
+    public static ItemStack getButton(Home home, int index) {
+        Location location = home.getLocation();
+        ConfigurationSection defaultIcon = MainConfig.getDefaultHomeItem();
+        TagResolver[] placeholders = new TagResolver[8];
+        placeholders[0] = Formatter.number("x", location.getX());
+        placeholders[1] = Formatter.number("y", location.getY());
+        placeholders[2] = Formatter.number("z", location.getZ());
+        placeholders[3] = Placeholder.parsed("world", MainConfig.getWorldName(location.getWorld().getName()));
+        placeholders[4] = Formatter.date("created", LocalDateTime.ofInstant(Instant.ofEpochMilli(home.getCreated()), ZoneOffset.UTC));
+        // date formatter with fallback because of LastTeleport can be -1 (haven't teleported yet)
+        placeholders[5] = MMUtil.date("last_teleport", LocalDateTime.ofInstant(Instant.ofEpochMilli(home.getLastTeleport()), ZoneOffset.UTC));
+        placeholders[6] = Placeholder.parsed("index", String.valueOf(index));
+        placeholders[7] = Placeholder.parsed("name",
+                home.getName() == null ? MainConfig.getUnnamedHomeName().replace("<index>", String.valueOf(index)) : home.getName());
+
+        ItemStack icon;
+        if (home.getIcon() != null) {
+            icon = home.getIcon();
+            ItemMeta iconMeta = icon.getItemMeta();
+
+            Component displayName = MiniMessage.miniMessage().deserialize(defaultIcon.getString("name"), placeholders).decorationIfAbsent(ITALIC, FALSE);
+            iconMeta.displayName(displayName);
+
+            List<Component> lore = new ArrayList<>();
+            for (String line : defaultIcon.getStringList("lore")) {
+                lore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, FALSE));
+            }
+            iconMeta.lore(lore);
+        } else {
+            icon = ItemUtil.getItemFromYaml(defaultIcon, placeholders);
+        }
+        return icon;
     }
 
 }

@@ -6,25 +6,22 @@ import net.kyori.adventure.text.minimessage.tag.TagPattern;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 
 public class MMUtil {
 
     public static Component PARSE_ERROR = Component.text("! PARSE ERROR !");
 
-    public static @NotNull TagResolver date(@TagPattern final @NotNull String key, final @NotNull TemporalAccessor time) {
+    public static @NotNull TagResolver date(@TagPattern final @NotNull String key, final @NotNull LocalDateTime time) {
         return TagResolver.resolver(key, (argumentQueue, context) -> {
             String format = argumentQueue.popOr("Format expected.").value();
             String fallback = argumentQueue.hasNext() ? argumentQueue.pop().value() : null;
-            return Tag.inserting(
-                    context.deserialize(
-                            (Instant.from(time).toEpochMilli() != -1 || fallback == null)
-                                    ? DateTimeFormatter.ofPattern(format).format(time)
-                                    : fallback
-                    )
-            );
+            return Tag.inserting(context.deserialize(
+                    (time.toEpochSecond(ZoneOffset.UTC) != -1 || fallback == null)
+                    ? DateTimeFormatter.ofPattern(format).format(time)
+                    : fallback));
         });
     }
 
