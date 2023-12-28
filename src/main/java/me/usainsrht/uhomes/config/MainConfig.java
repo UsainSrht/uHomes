@@ -23,6 +23,8 @@ public class MainConfig {
     private static int homeNameCharLimit;
     private static String homeNameValidChars;
     private static boolean askForNameBeforeSave;
+    private static String tpBetweenWorldsPerm;
+    private static String unnamedHomeName;
 
     private static String homesGuiTitle;
     private static boolean homesGuiIndexAmount;
@@ -62,6 +64,8 @@ public class MainConfig {
         homeNameCharLimit = config.getInt("home_name_character_limit");
         homeNameValidChars = config.getString("home_name_valid_characters");
         askForNameBeforeSave = config.getBoolean("ask_for_name_before_save");
+        tpBetweenWorldsPerm = config.getString("teleport_between_worlds_permission");
+        unnamedHomeName = config.getString("unnamed_home");
 
         homesGuiTitle = config.getString("gui.title");
         homesGuiIndexAmount = config.getBoolean("gui.index_amount");
@@ -109,6 +113,14 @@ public class MainConfig {
 
     public static String getWorldName(String name) {
         return worldNames.getOrDefault(name, name);
+    }
+
+    public static String getTpBetweenWorldsPerm() {
+        return tpBetweenWorldsPerm;
+    }
+
+    public static String getUnnamedHomeName() {
+        return unnamedHomeName;
     }
 
     public static boolean isAskForNameBeforeSave() {

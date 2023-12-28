@@ -90,7 +90,7 @@ public class SetHomeCommand extends Command {
             Home home = new Home(uuid, player.getLocation().clone());
             if (finalName != null) home.setName(finalName);
             homeManager.addHome(uuid, home);
-            MessageUtil.send(sender, MainConfig.getMessage("sethome"), Placeholder.unparsed("home_name", finalName));
+            MessageUtil.send(sender, MainConfig.getMessage("sethome"), Placeholder.unparsed("home_name", finalName == null ? "" : finalName));
             SoundUtil.play(sender, MainConfig.getSound("sethome"));
         });
         return true;

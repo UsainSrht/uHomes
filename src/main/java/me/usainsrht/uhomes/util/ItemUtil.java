@@ -1,6 +1,7 @@
 package me.usainsrht.uhomes.util;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
@@ -17,6 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
+import static net.kyori.adventure.text.format.TextDecoration.State.NOT_SET;
+
 public class ItemUtil {
 
     public static ItemStack getItemFromYaml(ConfigurationSection config, TagResolver... placeholders) {
@@ -26,7 +30,7 @@ public class ItemUtil {
 
         if (config.isSet("name")) {
             String name = config.getString("name");
-            Component parsedName = MiniMessage.miniMessage().deserialize(name, placeholders);
+            Component parsedName = MiniMessage.miniMessage().deserialize(name, placeholders).decorationIfAbsent(ITALIC, NOT_SET);
             itemMeta.displayName(parsedName);
         }
 
@@ -34,7 +38,7 @@ public class ItemUtil {
             List<String> lore = config.getStringList("lore");
             List<Component> parsedLore = new ArrayList<>();
             for (String line : lore) {
-                parsedLore.add(MiniMessage.miniMessage().deserialize(line, placeholders));
+                parsedLore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, NOT_SET));
             }
             itemMeta.lore(parsedLore);
         }

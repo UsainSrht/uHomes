@@ -37,9 +37,7 @@ public class HomeManager {
         } else {
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                 NBTFile nbtFile = getNBTFile(uuid);
-                Bukkit.broadcastMessage("nbtFile " + nbtFile.toString());
                 NBTCompoundList compoundList = nbtFile.getCompoundList("Homes");
-                Bukkit.broadcastMessage("compoundList size " + compoundList.size());
                 List<Home> homeList = new ArrayList<>();
                 compoundList.forEach(compound -> {
                     Location location = NBTUtil.getLocation(compound);
@@ -87,12 +85,14 @@ public class HomeManager {
         Location location = home.getLocation();
         compound.setString("World", location.getWorld().getName());
         NBTList<Double> pos = compound.getDoubleList("Pos");
-        pos.set(0, location.getX());
-        pos.set(1, location.getY());
-        pos.set(2, location.getZ());
+        pos.clear();
+        pos.add(location.getX());
+        pos.add(location.getY());
+        pos.add(location.getZ());
         NBTList<Float> rotation = compound.getFloatList("Rotation");
-        rotation.set(0, location.getYaw());
-        rotation.set(1, location.getPitch());
+        rotation.clear();
+        rotation.add(location.getYaw());
+        rotation.add(location.getPitch());
 
         if (home.getName() != null) compound.setString("Name", home.getName());
         if (home.getIcon() != null) compound.setItemStack("Icon", home.getIcon());

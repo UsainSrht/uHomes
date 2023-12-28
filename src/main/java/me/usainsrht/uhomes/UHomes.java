@@ -6,6 +6,7 @@ import me.usainsrht.uhomes.command.CommandHandler;
 import me.usainsrht.uhomes.command.HomeCommand;
 import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.config.MainConfig;
+import me.usainsrht.uhomes.listener.JoinListener;
 import me.usainsrht.uhomes.listener.SaveListener;
 import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
@@ -69,6 +70,7 @@ public final class UHomes extends JavaPlugin {
 
     public void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new SaveListener(homeManager), this);
+        Bukkit.getPluginManager().registerEvents(new JoinListener(homeManager), this);
     }
 
     public Metrics getMetrics() {

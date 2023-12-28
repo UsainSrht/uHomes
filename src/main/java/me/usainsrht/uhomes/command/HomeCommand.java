@@ -1,5 +1,6 @@
 package me.usainsrht.uhomes.command;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -18,10 +19,9 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class HomeCommand extends Command {
@@ -39,11 +39,31 @@ public class HomeCommand extends Command {
 
     public LiteralCommandNode<?> getCommodoreCommand() {
         return LiteralArgumentBuilder.literal(super.getName())
-                .then(RequiredArgumentBuilder.argument("home-name", HomeNameArgumentType.homeName(UHomes.getInstance().getHomeManager())))
+                .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString()))
                 /*.then(RequiredArgumentBuilder.argument("player", StringArgumentType.word())
                         .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString())))*/
                 .build();
     }
+
+    @Override
+    public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
+        if (args.length == 1) {
+            if (sender instanceof Player player) {
+                List<String> homeNames = new ArrayList<>();
+                CompletableFuture<List<Home>> homesFuture = UHomes.getInstance().getHomeManager().getHomes(player.getUniqueId());
+                if (homesFuture.isDone())
+                    try {
+                        homesFuture.get().stream().map(Home::getName)
+                                .filter(Objects::nonNull)
+                                .forEach(homeNames::add);
+                    } catch (Exception ignore) {}
+                if (sender.hasPermission("uhomes.reload")) homeNames.add("reload");
+                return StringUtil.copyPartialMatches(args[0], homeNames, new ArrayList<>());
+            } else return ImmutableList.of("reload");
+        }
+        return ImmutableList.of();
+    }
+
 
     @Override
     public boolean execute(CommandSender sender, String command, String[] args) {

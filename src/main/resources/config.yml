@@ -44,6 +44,14 @@ home_name_valid_characters: "^[\\w\\-\\s]+$"
 # false: saves the home without a name (can be changed later)
 ask_for_name_before_save: false
 
+# players with this permission can teleport between worlds via homes
+# while others can only teleport homes that are in same world
+teleport_between_worlds_permission: "uhomes.tp_between_worlds"
+
+# the name that will be shown when a home saved without a name
+# ex: unnamed_home_1, unnamed_home_2, ...
+unnamed_home: "unnamed_home_<index>"
+
 gui:
   title: "<yellow><bold>Homes"
   fill:
@@ -70,7 +78,7 @@ gui:
       - "  <gold><created:'yyyy-MM-dd HH:mm:ss'> "
       - ""
       - " <white>Last Teleport: "
-      - "  <gold><lastteleport:'yyyy-MM-dd HH:mm:ss'> "
+      - "  <gold><last_teleport:'yyyy-MM-dd HH:mm:ss'> "
       - ""
       - " <yellow>Left Click to teleport "
       - " <yellow>Right Click to rename "
@@ -87,7 +95,7 @@ gui:
       - ""
   sethome:
     material: CARTOGRAPHY_TABLE
-    name: "<yellow><homesize><bold>/</bold><maxhomesize>"
+    name: "<yellow><home_size><bold>/</bold><max_home_size>"
     lore:
       - ""
       - " <yellow>Click to create new home! "

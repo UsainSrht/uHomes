@@ -26,6 +26,7 @@ public class Home {
         this.lastTeleport = -1;
     }
 
+    @Nullable
     public String getName() {
         return name;
     }
@@ -51,6 +52,7 @@ public class Home {
         return created;
     }
 
+    @Nullable
     public long getLastTeleport() {
         return lastTeleport;
     }
