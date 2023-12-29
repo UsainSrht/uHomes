@@ -5,7 +5,10 @@ import de.tr7zw.changeme.nbtapi.NBTFile;
 import de.tr7zw.changeme.nbtapi.NBTList;
 import de.tr7zw.changeme.nbtapi.NBTListCompound;
 import me.usainsrht.uhomes.config.MainConfig;
+import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.NBTUtil;
+import me.usainsrht.uhomes.util.SoundUtil;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -178,10 +181,11 @@ public class HomeManager {
     }
 
     public void teleport(Entity entity, Home home) {
+        home.setLastTeleport(System.currentTimeMillis());
         entity.teleport(home.getLocation());
+        MessageUtil.send(entity, MainConfig.getMessage("teleport"), Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()));
+        SoundUtil.play(entity, MainConfig.getSound("teleport"));
     }
-
-
 
     public UHomes getPlugin() {
         return plugin;

@@ -7,14 +7,15 @@ messages:
     - "<red>You have reached your home limit <bold><home_limit></bold>."
     - "<red>You can delete or relocate one of your homes."
   home_name_limit:
-    - "<red>Your home name can only be up to <amount> characters."
-    - "<#F78383><italic><home_name> is <home_name_char_size> characters."
+    - "<red>Your home name length should be between <#F78383><italic><min></italic> <red>and <#F78383><italic><max></italic><red>."
+    - "<#F78383><italic><home_name></italic> <red>is <#F78383><italic><home_name_char_size></italic> <red>characters."
   home_name_not_valid:
     - "<red>Invalid characters found in <#F78383><italic><home_name></italic><red>."
     - "<#F78383><italic><invalid_characters>"
   home_name_already_in_use: "<red>You already have a home named <#F78383><italic><home_name></italic><red>."
   sethome: "<gray>Home <#F78383><italic><home_name></italic> <gray>successfully saved."
   no_home_with_that_name: "<red>You don't have a home named <#F78383><italic><home_name></italic><red>."
+  teleport: "<gray>You have teleported to <#F78383><italic><home_name></italic><gray>."
 
 sounds:
   reload: entity.villager.yes
@@ -24,6 +25,7 @@ sounds:
   home_name_already_in_use: entity.villager.no
   sethome: block.respawn_anchor.set_spawn
   no_home_with_that_name: entity.villager.no
+  teleport: entity.enderman.teleport
 
 # permission to calculate home limit of a player
 # for example if player has a "home.limit.5" permission he/she
@@ -36,7 +38,8 @@ home_limit_permission: "home.limit."
 # false: use highest home limit permission
 sum_limit_permissions: true
 
-home_name_character_limit: 32
+# min-max
+home_name_character_limit: 1-32
 
 home_name_valid_characters: "^[\\w\\-\\s]+$"
 
@@ -50,6 +53,7 @@ teleport_between_worlds_permission: "uhomes.tp_between_worlds"
 
 # the name that will be shown when a home saved without a name
 # ex: unnamed_home_1, unnamed_home_2, ...
+# if ask_for_name_before_save is true, this setting won't be used.
 unnamed_home: "unnamed_home_<index>"
 
 gui:
@@ -91,7 +95,7 @@ gui:
     name: "<red>You have no home!"
     lore:
       - ""
-      - " &eClick to sethome! "
+      - " <yellow>Click to sethome! "
       - ""
   sethome:
     material: CARTOGRAPHY_TABLE
@@ -101,10 +105,20 @@ gui:
       - " <yellow>Click to create new home! "
       - ""
 
+anvil_gui:
+  sethome:
+    title: "<red>↓ Home name ↓"
+    text: " "
+    slots:
+      0:
+        material: WHITE_BED
+      2:
+        material: LIME_BED
+
 world_names:
-  world: "<green>World"
+  world: "<green>Overworld"
   world_nether: "<red>Nether"
-  world_the_end: "<yellow>End"
+  world_the_end: "<yellow>The End"
 
 commands:
   home:

@@ -1,5 +1,6 @@
 package me.usainsrht.uhomes.config;
 
+import me.usainsrht.uhomes.IntArray;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.command.YamlCommand;
 import me.usainsrht.uhomes.util.ItemUtil;
@@ -20,7 +21,7 @@ public class MainConfig {
 
     private static String homeLimitPermission;
     private static boolean sumHomeLimits;
-    private static int homeNameCharLimit;
+    private static IntArray homeNameCharLimit;
     private static String homeNameValidChars;
     private static boolean askForNameBeforeSave;
     private static String tpBetweenWorldsPerm;
@@ -32,6 +33,10 @@ public class MainConfig {
     private static ConfigurationSection defaultHomeItem;
     private static ConfigurationSection noHomeItem;
     private static ConfigurationSection setHomeItem;
+
+    private static String setHomeGuiTitle;
+    private static String setHomeGuiText;
+    private static HashMap<Integer, ConfigurationSection> setHomeGuiSlots;
 
     private static HashMap<String, String> worldNames;
 
@@ -61,7 +66,7 @@ public class MainConfig {
 
         homeLimitPermission = config.getString("home_limit_permission");
         sumHomeLimits = config.getBoolean("sum_limit_permissions");
-        homeNameCharLimit = config.getInt("home_name_character_limit");
+        homeNameCharLimit = new IntArray(config.getString("home_name_character_limit"));
         homeNameValidChars = config.getString("home_name_valid_characters");
         askForNameBeforeSave = config.getBoolean("ask_for_name_before_save");
         tpBetweenWorldsPerm = config.getString("teleport_between_worlds_permission");
@@ -74,6 +79,13 @@ public class MainConfig {
         defaultHomeItem = config.getConfigurationSection("gui.default_home_icon");
         noHomeItem = config.getConfigurationSection("gui.no_home");
         setHomeItem = config.getConfigurationSection("gui.sethome");
+
+        setHomeGuiTitle = config.getString("anvil_gui.title");
+        setHomeGuiText = config.getString("anvil_gui.text");
+        setHomeGuiSlots = new HashMap<>();
+        config.getConfigurationSection("anvil_gui.slots").getKeys(false).forEach(keyString -> {
+            setHomeGuiSlots.put(Integer.parseInt(keyString), config.getConfigurationSection("anvil_gui.slots."+keyString));
+        });
 
         worldNames = new HashMap<>();
         config.getConfigurationSection("world_names").getKeys(false).forEach(key -> {
@@ -135,7 +147,7 @@ public class MainConfig {
         return sumHomeLimits;
     }
 
-    public static int getHomeNameCharLimit() {
+    public static IntArray getHomeNameCharLimit() {
         return homeNameCharLimit;
     }
 
