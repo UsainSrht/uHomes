@@ -8,7 +8,6 @@ import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.listener.JoinListener;
 import me.usainsrht.uhomes.listener.SaveListener;
-import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,7 +19,6 @@ public final class UHomes extends JavaPlugin {
     private static final int pluginID = 20539;
     private Metrics metrics;
     private HomeManager homeManager;
-    private LuckPerms luckPerms;
     private Commodore commodore;
     public File HOMES_FOLDER;
 

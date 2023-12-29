@@ -30,7 +30,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
 import static net.kyori.adventure.text.format.TextDecoration.State.FALSE;
-import static net.kyori.adventure.text.format.TextDecoration.State.NOT_SET;
 
 public class HomesGUI {
 

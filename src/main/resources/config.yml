@@ -41,11 +41,11 @@ sum_limit_permissions: true
 # min-max
 home_name_character_limit: 1-32
 
-home_name_valid_characters: "^[\\w\\-\\s]+$"
+home_name_valid_characters: "[\\w\\-\\s]+"
 
 # true: opens an input gui to player asking for name of the home
 # false: saves the home without a name (can be changed later)
-ask_for_name_before_save: false
+ask_for_name_before_save: true
 
 # players with this permission can teleport between worlds via homes
 # while others can only teleport homes that are in same world
@@ -74,9 +74,9 @@ gui:
     lore:
       - ""
       - " <white>World: <world> "
-      - " <white>X: <gold><x> "
-      - " <white>Y: <gold><y> "
-      - " <white>Z: <gold><z> "
+      - " <white>X: <gold><x:'#,###'> "
+      - " <white>Y: <gold><y:'#,###'> "
+      - " <white>Z: <gold><z:'#,###'> "
       - ""
       - " <white>Created At: "
       - "  <gold><created:'yyyy-MM-dd HH:mm:ss'> "
@@ -114,6 +114,9 @@ anvil_gui:
         material: WHITE_BED
       2:
         material: LIME_BED
+        name: "<green>✔ Confirm ✔"
+    home_name_not_valid: "<red>↓ Invalid Characters ↓ <#F78383><italic><invalid_characters>"
+    home_name_limit: "<red>↓ Name length should be <#F78383><italic><min></italic><red>-<#F78383><italic><max></italic> <red>↓"
 
 world_names:
   world: "<green>Overworld"

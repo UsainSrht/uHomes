@@ -35,6 +35,8 @@ public class MainConfig {
     private static ConfigurationSection setHomeItem;
 
     private static String setHomeGuiTitle;
+    private static String setHomeGuiTitleNotValid;
+    private static String setHomeGuiTitleCharLimit;
     private static String setHomeGuiText;
     private static HashMap<Integer, ConfigurationSection> setHomeGuiSlots;
 
@@ -80,11 +82,13 @@ public class MainConfig {
         noHomeItem = config.getConfigurationSection("gui.no_home");
         setHomeItem = config.getConfigurationSection("gui.sethome");
 
-        setHomeGuiTitle = config.getString("anvil_gui.title");
-        setHomeGuiText = config.getString("anvil_gui.text");
+        setHomeGuiTitle = config.getString("anvil_gui.sethome.title");
+        setHomeGuiTitleNotValid = config.getString("anvil_gui.sethome.home_name_not_valid");
+        setHomeGuiTitleCharLimit = config.getString("anvil_gui.sethome.home_name_limit");
+        setHomeGuiText = config.getString("anvil_gui.sethome.text");
         setHomeGuiSlots = new HashMap<>();
-        config.getConfigurationSection("anvil_gui.slots").getKeys(false).forEach(keyString -> {
-            setHomeGuiSlots.put(Integer.parseInt(keyString), config.getConfigurationSection("anvil_gui.slots."+keyString));
+        config.getConfigurationSection("anvil_gui.sethome.slots").getKeys(false).forEach(keyString -> {
+            setHomeGuiSlots.put(Integer.parseInt(keyString), config.getConfigurationSection("anvil_gui.sethome.slots."+keyString));
         });
 
         worldNames = new HashMap<>();
@@ -177,6 +181,26 @@ public class MainConfig {
 
     public static String getHomesGuiTitle() {
         return homesGuiTitle;
+    }
+
+    public static HashMap<Integer, ConfigurationSection> getSetHomeGuiSlots() {
+        return setHomeGuiSlots;
+    }
+
+    public static String getSetHomeGuiText() {
+        return setHomeGuiText;
+    }
+
+    public static String getSetHomeGuiTitle() {
+        return setHomeGuiTitle;
+    }
+
+    public static String getSetHomeGuiTitleCharLimit() {
+        return setHomeGuiTitleCharLimit;
+    }
+
+    public static String getSetHomeGuiTitleNotValid() {
+        return setHomeGuiTitleNotValid;
     }
 
     public static YamlCommand getHomeCommand() {

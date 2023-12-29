@@ -9,6 +9,8 @@ import me.usainsrht.uhomes.HomeManager;
 import me.usainsrht.uhomes.Metrics;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
+import me.usainsrht.uhomes.util.ItemUtil;
+import me.usainsrht.uhomes.util.MMUtil;
 import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
 import net.kyori.adventure.sound.Sound;
@@ -16,6 +18,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -23,10 +27,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class SetHomeCommand extends Command {
@@ -83,11 +84,54 @@ public class SetHomeCommand extends Command {
                 return false;
             }
             registerHome(player, location, name);
-        } else {
-            new AnvilGUI.Builder()
+        } else if (MainConfig.isAskForNameBeforeSave()) {
+            AnvilGUI.Builder builder = new AnvilGUI.Builder()
                     .plugin(UHomes.getInstance())
-                    .
-                    .open(player);
+                    .jsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitle()));
+
+            MainConfig.getSetHomeGuiSlots().forEach((slot, item) -> {
+                if (slot == 0) {
+                    item.set("name", MainConfig.getSetHomeGuiText());
+                    builder.itemLeft(ItemUtil.getItemFromYaml(item));
+                }
+                else if (slot == 1) builder.itemRight(ItemUtil.getItemFromYaml(item));
+                else if (slot == 2) builder.itemOutput(ItemUtil.getItemFromYaml(item));
+            });
+
+            builder.onClick((slot, stateSnapshot) -> {
+                if (slot != AnvilGUI.Slot.OUTPUT) {
+                    return Collections.emptyList();
+                }
+
+                String name = stateSnapshot.getText().trim();
+                if (!MainConfig.getHomeNameCharLimit().isInBetween(name.length())) {
+                    return Arrays.asList(
+                            AnvilGUI.ResponseAction.updateJsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitleCharLimit(),
+                                    Formatter.number("min", MainConfig.getHomeNameCharLimit().getMin()),
+                                    Formatter.number("max", MainConfig.getHomeNameCharLimit().getMax()),
+                                    Formatter.number("home_name_char_size", name.length()),
+                                    Placeholder.unparsed("home_name", name)
+                            ), true),
+                            AnvilGUI.ResponseAction.run(() -> SoundUtil.play(sender, MainConfig.getSound("home_name_limit")))
+                    );
+                }
+                if (!name.matches(MainConfig.getHomeNameValidChars())) {
+                    return Arrays.asList(
+                            AnvilGUI.ResponseAction.updateJsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitleNotValid(),
+                                    Placeholder.unparsed("home_name", name),
+                                    Placeholder.unparsed("invalid_characters", String.join(" ", name.split(MainConfig.getHomeNameValidChars())))
+                            ), true),
+                            AnvilGUI.ResponseAction.run(() -> SoundUtil.play(sender, MainConfig.getSound("home_name_not_valid")))
+                    );
+                }
+
+                return Arrays.asList(
+                        AnvilGUI.ResponseAction.close(),
+                        AnvilGUI.ResponseAction.run(() -> registerHome(player, location, name))
+                );
+            });
+
+            builder.open(player);
         }
 
         return true;
