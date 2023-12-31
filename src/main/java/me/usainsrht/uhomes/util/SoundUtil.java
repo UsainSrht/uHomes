@@ -19,6 +19,13 @@ public class SoundUtil {
         }
     }
 
+    public static void stop(CommandSender sender, Collection<Sound> sounds) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            sounds.forEach(player::stopSound);
+        }
+    }
+
     public static Sound getSound(String string) {
         Sound.Builder sound = Sound.sound();
         String[] splitted = string.split(",");

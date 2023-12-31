@@ -8,8 +8,10 @@ import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.listener.JoinListener;
 import me.usainsrht.uhomes.listener.SaveListener;
+import me.usainsrht.uhomes.teleport.TeleportManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bstats.bukkit.Metrics;
 
 import java.io.File;
 
@@ -19,6 +21,7 @@ public final class UHomes extends JavaPlugin {
     private static final int pluginID = 20539;
     private Metrics metrics;
     private HomeManager homeManager;
+    private TeleportManager teleportManager;
     private Commodore commodore;
     public File HOMES_FOLDER;
 
@@ -29,6 +32,7 @@ public final class UHomes extends JavaPlugin {
         this.metrics = new Metrics(this, pluginID);
 
         this.homeManager = new HomeManager(this);
+        this.teleportManager = new TeleportManager(this);
 
         loadConfig();
 
@@ -79,6 +83,10 @@ public final class UHomes extends JavaPlugin {
 
     public HomeManager getHomeManager() {
         return homeManager;
+    }
+
+    public TeleportManager getTeleportManager() {
+        return teleportManager;
     }
 
     public static UHomes getInstance() {

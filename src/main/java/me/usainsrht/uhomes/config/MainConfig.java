@@ -1,14 +1,10 @@
 package me.usainsrht.uhomes.config;
 
 import me.usainsrht.uhomes.IntArray;
-import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.command.YamlCommand;
-import me.usainsrht.uhomes.util.ItemUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
@@ -26,6 +22,8 @@ public class MainConfig {
     private static boolean askForNameBeforeSave;
     private static String tpBetweenWorldsPerm;
     private static String unnamedHomeName;
+    private static boolean loadChunkBeforeTp;
+    private static String homeTeleportTimePerm;
 
     private static String homesGuiTitle;
     private static boolean homesGuiIndexAmount;
@@ -73,6 +71,8 @@ public class MainConfig {
         askForNameBeforeSave = config.getBoolean("ask_for_name_before_save");
         tpBetweenWorldsPerm = config.getString("teleport_between_worlds_permission");
         unnamedHomeName = config.getString("unnamed_home");
+        loadChunkBeforeTp = config.getBoolean("load_chunk_before_tp");
+        homeTeleportTimePerm = config.getString("home_teleport_time_permission");
 
         homesGuiTitle = config.getString("gui.title");
         homesGuiIndexAmount = config.getBoolean("gui.index_amount");
@@ -145,6 +145,14 @@ public class MainConfig {
 
     public static boolean isHomesGuiIndexAmount() {
         return homesGuiIndexAmount;
+    }
+
+    public static boolean isLoadChunkBeforeTp() {
+        return loadChunkBeforeTp;
+    }
+
+    public static String getHomeTeleportTimePerm() {
+        return homeTeleportTimePerm;
     }
 
     public static boolean isSumHomeLimits() {

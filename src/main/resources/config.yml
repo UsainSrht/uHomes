@@ -16,6 +16,11 @@ messages:
   sethome: "<gray>Home <#F78383><italic><home_name></italic> <gray>successfully saved."
   no_home_with_that_name: "<red>You don't have a home named <#F78383><italic><home_name></italic><red>."
   teleport: "<gray>You have teleported to <#F78383><italic><home_name></italic><gray>."
+  teleport_start:
+    - "<gray>You are teleporting to your home <#F78383><italic><home_name></italic><gray>."
+    - "<yellow>⚠ Don't move for <#FFC355><italic><seconds> seconds</italic><gray>."
+  teleport_cancel: "<dark_red><bold>🚫</bold> <red>You moved and cancelled the teleport."
+  teleport_tick: ""
 
 sounds:
   reload: entity.villager.yes
@@ -25,7 +30,12 @@ sounds:
   home_name_already_in_use: entity.villager.no
   sethome: block.respawn_anchor.set_spawn
   no_home_with_that_name: entity.villager.no
-  teleport: entity.enderman.teleport
+  teleport:
+    - entity.enderman.teleport
+    #- block.portal.travel
+  teleport_start: block.portal.trigger
+  teleport_cancel: entity.ender_eye.death
+  teleport_tick: ui.button.click
 
 # permission to calculate home limit of a player
 # for example if player has a "home.limit.5" permission he/she
@@ -56,6 +66,14 @@ teleport_between_worlds_permission: "uhomes.tp_between_worlds"
 # if ask_for_name_before_save is true, this setting won't be used.
 unnamed_home: "unnamed_home_<index>"
 
+load_chunk_before_tp: true
+
+# amount of ticks a player shouldn't move to teleport home
+# ex: home.teleport.60 will teleport player to home in 3 seconds
+# 20 = 1 second
+# use bypass to instant tp ex: home.teleport.bypass
+home_teleport_time_permission: "home.teleport."
+
 gui:
   title: "<yellow><bold>Homes"
   fill:
@@ -66,7 +84,7 @@ gui:
   # set amount of home icon itemstack to current index
   # this will override custom icons' itemstack amounts
   # for example homes will be listed like 1, 2, 3, 4 amount of items
-  index_amount: true
+  index_amount: false
 
   default_home_icon:
     material: WHITE_BED

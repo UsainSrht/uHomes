@@ -17,24 +17,44 @@ public class TimedTeleport {
     private int ticksPassed;
     private int ticksToRunOnTick;
     private Consumer<TimedTeleport> onTick;
+    private Consumer<TimedTeleport> onStart;
     private Consumer<TimedTeleport> onCancel;
     private Consumer<TimedTeleport> onFinish;
+    private boolean done;
 
-    public TimedTeleport() {};
+    public TimedTeleport() {}
 
     public void start(boolean loadChunk) {
         startLocation = entity.getLocation().clone();
         taskID = Bukkit.getScheduler().runTaskTimer(UHomes.getInstance(), () -> {
-            ticksPassed++;
+            if (ticksPassed == 0) onStart.accept(this);
             if (ticksPassed % ticksToRunOnTick == 0) onTick.accept(this);
-            if (ticksPassed >= ticksTotal) onFinish.accept(this);
+            if (ticksPassed >= ticksTotal) {
+                finish();
+                return;
+            }
+
+            ticksPassed++;
+
+            if (startLocation.distance(entity.getLocation()) > 0.15) cancel();
         }, 1L, 1L).getTaskId();
         if (loadChunk) targetLocation.getWorld().getChunkAtAsyncUrgently(targetLocation);
     }
 
     public void cancel() {
-        Bukkit.getScheduler().cancelTask(taskID);
+        stopTimer();
         onCancel.accept(this);
+        done = true;
+    }
+
+    public void finish() {
+        stopTimer();
+        onFinish.accept(this);
+        done = true;
+    }
+
+    private void stopTimer() {
+        Bukkit.getScheduler().cancelTask(taskID);
     }
 
     //builder methods
@@ -59,6 +79,11 @@ public class TimedTeleport {
         return this;
     }
 
+    public TimedTeleport onStart(Consumer<TimedTeleport> consumer) {
+        onStart = consumer;
+        return this;
+    }
+
     public TimedTeleport onTick(Consumer<TimedTeleport> consumer) {
         onTick = consumer;
         return this;
@@ -78,6 +103,10 @@ public class TimedTeleport {
     //getter methods
 
 
+    public boolean isDone() {
+        return done;
+    }
+
     public int getTaskID() {
         return taskID;
     }
@@ -88,6 +117,14 @@ public class TimedTeleport {
 
     public Entity getEntity() {
         return entity;
+    }
+
+    public Location getStartLocation() {
+        return startLocation;
+    }
+
+    public Consumer<TimedTeleport> getOnStart() {
+        return onStart;
     }
 
     public Consumer<TimedTeleport> getOnCancel() {

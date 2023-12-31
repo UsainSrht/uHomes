@@ -107,6 +107,9 @@ public class HomesGUI {
         } else {
             icon = ItemUtil.getItemFromYaml(defaultIcon, placeholders);
         }
+
+        if (MainConfig.isHomesGuiIndexAmount()) icon.setAmount(index + 1);
+
         return icon;
     }
 

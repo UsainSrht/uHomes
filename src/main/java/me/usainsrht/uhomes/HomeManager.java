@@ -5,9 +5,11 @@ import de.tr7zw.changeme.nbtapi.NBTFile;
 import de.tr7zw.changeme.nbtapi.NBTList;
 import de.tr7zw.changeme.nbtapi.NBTListCompound;
 import me.usainsrht.uhomes.config.MainConfig;
+import me.usainsrht.uhomes.teleport.TimedTeleport;
 import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.NBTUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
+import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -71,7 +73,6 @@ public class HomeManager {
     }
 
     public void saveHome(Home home) {
-        //todo save players' all homes at once
         UUID uuid = home.getOwner();
         NBTFile nbtFile = getNBTFile(uuid);
         NBTCompoundList compoundList = nbtFile.getCompoundList("Homes");
@@ -113,7 +114,7 @@ public class HomeManager {
         long start = System.currentTimeMillis();
         int saved = 0;
         int removedFromCache = 0;
-        plugin.getLogger().info("Saving homes...");
+        //plugin.getLogger().info("Saving homes...");
         Iterator<Map.Entry<UUID, List<Home>>> iterator = loadedHomes.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, List<Home>> entry = iterator.next();
@@ -124,8 +125,8 @@ public class HomeManager {
             iterator.remove();
             removedFromCache++;
         }
-        plugin.getLogger().info("Saved " + saved + " homes in " + (System.currentTimeMillis()-start)
-                + "ms (removed " + removedFromCache + " players from cache)");
+        /*plugin.getLogger().info("Saved " + saved + " homes in " + (System.currentTimeMillis()-start)
+                + "ms (removed " + removedFromCache + " players from cache)");*/
     }
 
     @Nullable
@@ -173,6 +174,25 @@ public class HomeManager {
         }
     }
 
+    public int getHomeTeleportTime(UUID uuid) {
+        return getHomeTeleportTime(Bukkit.getEntity(uuid));
+    }
+
+    public int getHomeTeleportTime(Permissible permissible) {
+        if (permissible.hasPermission(MainConfig.getHomeTeleportTimePerm()+"bypass")) return 0;
+        int lowest = 60; //default 3 seconds
+        for (PermissionAttachmentInfo permInfo : permissible.getEffectivePermissions()) {
+            String perm = permInfo.getPermission();
+            if (!perm.startsWith(MainConfig.getHomeTeleportTimePerm())) continue;
+            String substr = perm.substring(MainConfig.getHomeTeleportTimePerm().length());
+            try {
+                int number = Integer.parseInt(substr);
+                if (number < lowest) lowest = number;
+            } catch (NumberFormatException ignore) {}
+        }
+        return lowest;
+    }
+
     public CompletableFuture<Boolean> canRegisterHome(UUID uuid) {
         CompletableFuture<List<Home>> future = getHomes(uuid);
         CompletableFuture<Boolean> canRegisterFuture = new CompletableFuture<>();
@@ -181,10 +201,44 @@ public class HomeManager {
     }
 
     public void teleport(Entity entity, Home home) {
-        home.setLastTeleport(System.currentTimeMillis());
-        entity.teleport(home.getLocation());
-        MessageUtil.send(entity, MainConfig.getMessage("teleport"), Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()));
-        SoundUtil.play(entity, MainConfig.getSound("teleport"));
+        TimedTeleport timedTeleport = new TimedTeleport()
+                .entity(entity)
+                .location(home.getLocation())
+                .ticksToRunOnTick(20)
+                .ticks(getHomeTeleportTime(entity))
+                .onFinish(tt -> {
+                    home.setLastTeleport(System.currentTimeMillis());
+                    entity.teleport(home.getLocation());
+                    MessageUtil.send(entity, MainConfig.getMessage("teleport"),
+                            Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()));
+                    SoundUtil.play(entity, MainConfig.getSound("teleport"));
+
+                    SoundUtil.stop(entity, MainConfig.getSound("teleport_start"));
+                })
+                .onCancel(tt -> {
+                    MessageUtil.send(entity, MainConfig.getMessage("teleport_cancel"));
+                    SoundUtil.play(entity, MainConfig.getSound("teleport_cancel"));
+
+                    SoundUtil.stop(entity, MainConfig.getSound("teleport_start"));
+                })
+                .onTick(tt -> {
+                    MessageUtil.send(entity, MainConfig.getMessage("teleport_tick"),
+                            Formatter.number("ticks_passed", tt.getTicksPassed()),
+                            Formatter.number("ticks_total", tt.getTicksTotal()));
+                    SoundUtil.play(entity, MainConfig.getSound("teleport_tick"));
+                })
+                .onStart(tt -> {
+                    int seconds = (int)Math.ceil(tt.getTicksTotal() / 20d);
+                    if (seconds > 0) {
+                        MessageUtil.send(entity, MainConfig.getMessage("teleport_start"),
+                                Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()),
+                                Formatter.number("seconds", seconds));
+                    }
+                    SoundUtil.play(entity, MainConfig.getSound("teleport_start"));
+                })
+                ;
+
+        plugin.getTeleportManager().start(timedTeleport);
     }
 
     public UHomes getPlugin() {
