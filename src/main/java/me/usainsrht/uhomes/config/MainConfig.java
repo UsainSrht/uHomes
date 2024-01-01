@@ -2,6 +2,7 @@ package me.usainsrht.uhomes.config;
 
 import me.usainsrht.uhomes.IntArray;
 import me.usainsrht.uhomes.command.YamlCommand;
+import me.usainsrht.uhomes.gui.HomeButtonAction;
 import me.usainsrht.uhomes.util.SoundUtil;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.configuration.ConfigurationSection;
@@ -31,6 +32,11 @@ public class MainConfig {
     private static ConfigurationSection defaultHomeItem;
     private static ConfigurationSection noHomeItem;
     private static ConfigurationSection setHomeItem;
+
+    private static HomeButtonAction homeButtonLeftClick;
+    private static HomeButtonAction homeButtonRightClick;
+    private static HomeButtonAction homeButtonLeftClickWithShift;
+    private static HomeButtonAction homeButtonRightClickWithShift;
 
     private static String setHomeGuiTitle;
     private static String setHomeGuiTitleNotValid;
@@ -82,6 +88,11 @@ public class MainConfig {
         noHomeItem = config.getConfigurationSection("gui.no_home");
         setHomeItem = config.getConfigurationSection("gui.sethome");
 
+        homeButtonLeftClick = HomeButtonAction.valueOf(config.getString("left_click"));
+        homeButtonRightClick = HomeButtonAction.valueOf(config.getString("right_click"));
+        homeButtonLeftClickWithShift = HomeButtonAction.valueOf(config.getString("left_click_with_shift"));
+        homeButtonRightClickWithShift = HomeButtonAction.valueOf(config.getString("right_click_with_shift"));
+
         setHomeGuiTitle = config.getString("anvil_gui.sethome.title");
         setHomeGuiTitleNotValid = config.getString("anvil_gui.sethome.home_name_not_valid");
         setHomeGuiTitleCharLimit = config.getString("anvil_gui.sethome.home_name_limit");
@@ -125,6 +136,22 @@ public class MainConfig {
 
     public static Collection<Sound> getSound(String sound) {
         return sounds.getOrDefault(sound, Collections.emptyList());
+    }
+
+    public static HomeButtonAction getHomeButtonLeftClick() {
+        return homeButtonLeftClick;
+    }
+
+    public static HomeButtonAction getHomeButtonLeftClickWithShift() {
+        return homeButtonLeftClickWithShift;
+    }
+
+    public static HomeButtonAction getHomeButtonRightClick() {
+        return homeButtonRightClick;
+    }
+
+    public static HomeButtonAction getHomeButtonRightClickWithShift() {
+        return homeButtonRightClickWithShift;
     }
 
     public static String getWorldName(String name) {

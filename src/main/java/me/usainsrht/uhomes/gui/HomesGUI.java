@@ -1,5 +1,6 @@
 package me.usainsrht.uhomes.gui;
 
+import de.tr7zw.changeme.nbtapi.NBT;
 import me.usainsrht.uhomes.Home;
 import me.usainsrht.uhomes.HomeManager;
 import me.usainsrht.uhomes.UHomes;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -40,6 +42,7 @@ public class HomesGUI {
         InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
 
         player.openInventory(inventory);
+        player.setMetadata("HomesGUI", new FixedMetadataValue(UHomes.getInstance(), inventory));
 
         HomeManager homeManager = UHomes.getInstance().getHomeManager();
         CompletableFuture<List<Home>> future = homeManager.getHomes(uuid);
@@ -57,19 +60,26 @@ public class HomesGUI {
         InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
 
         if (homes.size() == 0) {
-            inventory.setItem(13, ItemUtil.getItemFromYaml(MainConfig.getNoHomeItem()));
+            ItemStack noHome = ItemUtil.getItemFromYaml(MainConfig.getNoHomeItem());
+            NBT.modify(noHome, nbt -> { nbt.setBoolean("sethome", true); });
+            inventory.setItem(13, noHome);
         }
 
-        inventory.setItem(size-5, ItemUtil.getItemFromYaml(MainConfig.getSetHomeItem(),
+        ItemStack setHome = ItemUtil.getItemFromYaml(MainConfig.getSetHomeItem(),
                 Formatter.number("home_size", homes.size()),
-                Formatter.number("max_home_size", maxHomes)));
+                Formatter.number("max_home_size", maxHomes));
+        NBT.modify(setHome, nbt -> { nbt.setBoolean("sethome", true); });
+        inventory.setItem(size-5, setHome);
 
         int i = 0;
         for (Home home : homes) {
-            inventory.setItem(getSlot(i), getButton(home, i));
+            ItemStack homeButton = getButton(home, i);
+            NBT.modify(homeButton, nbt -> { nbt.getOrCreateCompound("Home").mergeCompound(home.getCompound()); });
+            inventory.setItem(getSlot(i), homeButton);
             i++;
         }
         player.openInventory(inventory);
+        player.setMetadata("HomesGUI", new FixedMetadataValue(UHomes.getInstance(), inventory));
     }
 
     public static int getSlot(int index) {

@@ -8,6 +8,7 @@ import me.usainsrht.uhomes.Home;
 import me.usainsrht.uhomes.HomeManager;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
+import me.usainsrht.uhomes.gui.HomesGUI;
 import me.usainsrht.uhomes.util.ItemUtil;
 import me.usainsrht.uhomes.util.MMUtil;
 import me.usainsrht.uhomes.util.MessageUtil;
@@ -61,80 +62,100 @@ public class SetHomeCommand extends Command {
         }
         Player player = (Player) sender;
         Location location = player.getLocation().clone();
-        if (args.length > 0) {
-            String name = null;
-            name = String.join(" ", args).trim();
+        setHome(player, location, (args.length > 0) ? String.join(" ", args) : null);
+        return true;
+    }
+
+    public static void setHome(Player player, Location location, @Nullable String name) {
+        if (name != null) {
+            name = name.trim();
             if (!MainConfig.getHomeNameCharLimit().isInBetween(name.length())) {
-                MessageUtil.send(sender, MainConfig.getMessage("home_name_limit"),
+                MessageUtil.send(player, MainConfig.getMessage("home_name_limit"),
                         Formatter.number("min", MainConfig.getHomeNameCharLimit().getMin()),
                         Formatter.number("max", MainConfig.getHomeNameCharLimit().getMax()),
                         Formatter.number("home_name_char_size", name.length()),
                         Placeholder.unparsed("home_name", name));
-                SoundUtil.play(sender, MainConfig.getSound("home_name_limit"));
-                return false;
+                SoundUtil.play(player, MainConfig.getSound("home_name_limit"));
+                return;
             }
             if (!name.matches(MainConfig.getHomeNameValidChars())) {
-                MessageUtil.send(sender, MainConfig.getMessage("home_name_not_valid"),
+                MessageUtil.send(player, MainConfig.getMessage("home_name_not_valid"),
                         Placeholder.unparsed("home_name", name),
                         Placeholder.unparsed("invalid_characters", String.join(" ", name.split(MainConfig.getHomeNameValidChars()))));
-                SoundUtil.play(sender, MainConfig.getSound("home_name_not_valid"));
-                return false;
+                SoundUtil.play(player, MainConfig.getSound("home_name_not_valid"));
+                return;
             }
             registerHome(player, location, name);
         } else if (MainConfig.isAskForNameBeforeSave()) {
-            AnvilGUI.Builder builder = new AnvilGUI.Builder()
-                    .plugin(UHomes.getInstance())
-                    .jsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitle()));
-
-            MainConfig.getSetHomeGuiSlots().forEach((slot, item) -> {
-                if (slot == 0) {
-                    item.set("name", MainConfig.getSetHomeGuiText());
-                    builder.itemLeft(ItemUtil.getItemFromYaml(item));
-                }
-                else if (slot == 1) builder.itemRight(ItemUtil.getItemFromYaml(item));
-                else if (slot == 2) builder.itemOutput(ItemUtil.getItemFromYaml(item));
-            });
-
-            builder.onClick((slot, stateSnapshot) -> {
-                if (slot != AnvilGUI.Slot.OUTPUT) {
-                    return Collections.emptyList();
-                }
-
-                String name = stateSnapshot.getText().trim();
-                if (!MainConfig.getHomeNameCharLimit().isInBetween(name.length())) {
-                    return Arrays.asList(
-                            AnvilGUI.ResponseAction.updateJsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitleCharLimit(),
-                                    Formatter.number("min", MainConfig.getHomeNameCharLimit().getMin()),
-                                    Formatter.number("max", MainConfig.getHomeNameCharLimit().getMax()),
-                                    Formatter.number("home_name_char_size", name.length()),
-                                    Placeholder.unparsed("home_name", name)
-                            ), true),
-                            AnvilGUI.ResponseAction.run(() -> SoundUtil.play(sender, MainConfig.getSound("home_name_limit")))
-                    );
-                }
-                if (!name.matches(MainConfig.getHomeNameValidChars())) {
-                    return Arrays.asList(
-                            AnvilGUI.ResponseAction.updateJsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitleNotValid(),
-                                    Placeholder.unparsed("home_name", name),
-                                    Placeholder.unparsed("invalid_characters", String.join(" ", name.split(MainConfig.getHomeNameValidChars())))
-                            ), true),
-                            AnvilGUI.ResponseAction.run(() -> SoundUtil.play(sender, MainConfig.getSound("home_name_not_valid")))
-                    );
-                }
-
-                return Arrays.asList(
-                        AnvilGUI.ResponseAction.close(),
-                        AnvilGUI.ResponseAction.run(() -> registerHome(player, location, name))
-                );
-            });
-
-            builder.open(player);
+            renameHome(player, null, location);
         }
-
-        return true;
     }
 
-    public static void registerHome(Player player, Location location, @Nullable String name) {
+    /*
+    * pass home null to create home
+    * pass location null to rename home
+    * */
+    public static void renameHome(Player player, @Nullable Home home, @Nullable Location location) {
+        AnvilGUI.Builder builder = new AnvilGUI.Builder()
+                .plugin(UHomes.getInstance())
+                .jsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitle()));
+
+        MainConfig.getSetHomeGuiSlots().forEach((slot, item) -> {
+            if (slot == 0) {
+                if (home == null) item.set("name", MainConfig.getSetHomeGuiText());
+                else if (home.getName() != null) item.set("name", home.getName());
+                builder.itemLeft(ItemUtil.getItemFromYaml(item));
+            }
+            else if (slot == 1) builder.itemRight(ItemUtil.getItemFromYaml(item));
+            else if (slot == 2) builder.itemOutput(ItemUtil.getItemFromYaml(item));
+        });
+
+        builder.onClick((slot, stateSnapshot) -> {
+            if (slot != AnvilGUI.Slot.OUTPUT) {
+                return Collections.emptyList();
+            }
+
+            String name = stateSnapshot.getText().trim();
+            if (!MainConfig.getHomeNameCharLimit().isInBetween(name.length())) {
+                return Arrays.asList(
+                        AnvilGUI.ResponseAction.updateJsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitleCharLimit(),
+                                Formatter.number("min", MainConfig.getHomeNameCharLimit().getMin()),
+                                Formatter.number("max", MainConfig.getHomeNameCharLimit().getMax()),
+                                Formatter.number("home_name_char_size", name.length()),
+                                Placeholder.unparsed("home_name", name)
+                        ), true),
+                        AnvilGUI.ResponseAction.run(() -> SoundUtil.play(player, MainConfig.getSound("home_name_limit")))
+                );
+            }
+            if (!name.matches(MainConfig.getHomeNameValidChars())) {
+                return Arrays.asList(
+                        AnvilGUI.ResponseAction.updateJsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitleNotValid(),
+                                Placeholder.unparsed("home_name", name),
+                                Placeholder.unparsed("invalid_characters", String.join(" ", name.split(MainConfig.getHomeNameValidChars())))
+                        ), true),
+                        AnvilGUI.ResponseAction.run(() -> SoundUtil.play(player, MainConfig.getSound("home_name_not_valid")))
+                );
+            }
+
+            return Arrays.asList(
+                    AnvilGUI.ResponseAction.close(),
+                    AnvilGUI.ResponseAction.run(() -> {
+                        if (home == null) {
+                            registerHome(player, location, name);
+                            HomesGUI.open(player.getUniqueId(), player);
+                        }
+                        else {
+                            home.setName(name);
+                            HomesGUI.open(home.getOwner(), player);
+                        }
+                    })
+            );
+        });
+
+        builder.open(player);
+    }
+
+    private static void registerHome(Player player, Location location, @Nullable String name) {
         UUID uuid = player.getUniqueId();
         HomeManager homeManager = UHomes.getInstance().getHomeManager();
         CompletableFuture<List<Home>> homesFuture = homeManager.getHomes(uuid);

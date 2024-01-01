@@ -4,6 +4,7 @@ import de.tr7zw.changeme.nbtapi.NBTCompoundList;
 import de.tr7zw.changeme.nbtapi.NBTFile;
 import de.tr7zw.changeme.nbtapi.NBTList;
 import de.tr7zw.changeme.nbtapi.NBTListCompound;
+import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.teleport.TimedTeleport;
 import me.usainsrht.uhomes.util.MessageUtil;
@@ -15,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 
@@ -239,6 +241,24 @@ public class HomeManager {
                 ;
 
         plugin.getTeleportManager().start(timedTeleport);
+    }
+
+    public void relocate(Player player, Home home) {
+        //todo confirmation
+        home.setLocation(player.getLocation().clone());
+    }
+
+    public void delete(Player player, Home home) {
+        //todo confirmation
+        UUID uuid = home.getOwner();
+        if (loadedHomes.containsKey(uuid)) {
+            List<Home> homes = loadedHomes.get(uuid);
+            homes.remove(home);
+        }
+    }
+
+    public void rename(Player player, Home home) {
+        SetHomeCommand.renameHome(player, home, null);
     }
 
     public UHomes getPlugin() {

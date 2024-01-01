@@ -86,6 +86,11 @@ gui:
   # for example homes will be listed like 1, 2, 3, 4 amount of items
   index_amount: false
 
+  left_click: TELEPORT
+  right_click: RENAME
+  left_click_with_shift: RELOCATE
+  right_click_with_shift: DELETE
+
   default_home_icon:
     material: WHITE_BED
     name: "<yellow><name>"

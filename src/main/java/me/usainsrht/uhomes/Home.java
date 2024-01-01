@@ -1,5 +1,10 @@
 package me.usainsrht.uhomes;
 
+import de.tr7zw.changeme.nbtapi.NBT;
+import de.tr7zw.changeme.nbtapi.NBTCompound;
+import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBTList;
+import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
@@ -24,6 +29,26 @@ public class Home {
         this.name = null;
         this.icon = null;
         this.lastTeleport = -1;
+    }
+
+    public ReadableNBT getCompound() {
+        ReadWriteNBT nbt = NBT.createNBTObject();
+        nbt.setUUID("Owner", owner);
+        nbt.setLong("Created", created);
+
+        ReadWriteNBTList<Double> pos = nbt.getDoubleList("Pos");
+        pos.add(location.getX());
+        pos.add(location.getY());
+        pos.add(location.getZ());
+
+        ReadWriteNBTList<Float> rotation = nbt.getFloatList("Rotation");
+        rotation.add(location.getYaw());
+        rotation.add(location.getPitch());
+
+        if (name != null) nbt.setString("Name", name);
+        if (icon != null) nbt.setItemStack("Icon", icon);
+        if (lastTeleport != -1) nbt.setLong("LastTeleport", lastTeleport);
+        return nbt;
     }
 
     @Nullable
