@@ -21,6 +21,7 @@ messages:
     - "<yellow>⚠ Don't move for <#FFC355><italic><seconds> seconds</italic><gray>."
   teleport_cancel: "<dark_red><bold>🚫</bold> <red>You moved and cancelled the teleport."
   teleport_tick: ""
+  teleport_between_worlds_permission: "<red>You don't have <underlined><permission></underlined> permission!"
 
 sounds:
   reload: entity.villager.yes
@@ -36,6 +37,7 @@ sounds:
   teleport_start: block.portal.trigger
   teleport_cancel: entity.ender_eye.death
   teleport_tick: ui.button.click
+  teleport_between_worlds_permission: entity.villager.no
 
 # permission to calculate home limit of a player
 # for example if player has a "home.limit.5" permission he/she

@@ -10,6 +10,8 @@ import me.usainsrht.uhomes.teleport.TimedTeleport;
 import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.NBTUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
@@ -203,6 +205,12 @@ public class HomeManager {
     }
 
     public void teleport(Entity entity, Home home) {
+        if (entity.getWorld() != home.getLocation().getWorld() && !entity.hasPermission(MainConfig.getTpBetweenWorldsPerm())) {
+            MessageUtil.send(entity, MainConfig.getMessage("teleport_between_worlds_permission"),
+                    Placeholder.unparsed("permission", MainConfig.getTpBetweenWorldsPerm()));
+            SoundUtil.play(entity, MainConfig.getSound("teleport_between_worlds_permission"));
+            return;
+        }
         TimedTeleport timedTeleport = new TimedTeleport()
                 .entity(entity)
                 .location(home.getLocation())
@@ -255,6 +263,22 @@ public class HomeManager {
             List<Home> homes = loadedHomes.get(uuid);
             homes.remove(home);
         }
+        NBTFile nbtFile = getNBTFile(uuid);
+        NBTCompoundList compoundList = nbtFile.getCompoundList("Homes");
+        for (int i = 0; i < compoundList.size(); i++) {
+            NBTListCompound current = compoundList.get(i);
+            if (home.getCreated() == current.getLong("Created")) {
+                compoundList.remove(i);
+                try {
+                    nbtFile.save();
+                } catch (IOException e) {
+                    plugin.getLogger().severe("An error occurred while deleting home of "+Bukkit.getOfflinePlayer(uuid).getName()+" ("+uuid+")");
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
     }
 
     public void rename(Player player, Home home) {

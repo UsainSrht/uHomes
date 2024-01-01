@@ -8,6 +8,7 @@ import me.usainsrht.uhomes.HomeManager;
 import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.gui.HomeButtonAction;
 import me.usainsrht.uhomes.gui.HomesGUI;
+import me.usainsrht.uhomes.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,9 +34,8 @@ public class InventoryClickListener implements Listener {
         if (!player.hasMetadata("HomesGUI") || player.getMetadata("HomesGUI").isEmpty()) return;
         Inventory homesGUI = (Inventory) player.getMetadata("HomesGUI").get(0).value();
 
-        InventoryView inventoryView = e.getView();
-        Inventory inventory = inventoryView.getTopInventory();
-        if (inventory != homesGUI) return;
+        Inventory inventory = e.getClickedInventory();
+        if (inventory == null || inventory != homesGUI) return;
         e.setCancelled(true);
 
         ItemStack item = e.getCurrentItem();
@@ -49,6 +49,12 @@ public class InventoryClickListener implements Listener {
                             .filter(home -> home.getCreated() == homeCompound.getLong("Created"))
                             .findFirst();
                     optionalHome.ifPresent(home -> {
+                        ItemStack cursor = e.getCursor();
+                        if (!cursor.getType().isAir()) {
+                            home.setIcon(cursor.clone());
+                            HomesGUI.open(home.getOwner(), player);
+                            return;
+                        }
                         HomeButtonAction action = HomeButtonAction.getFromClick(e.getClick());
                         if (action == null) return;
                         switch (action) {

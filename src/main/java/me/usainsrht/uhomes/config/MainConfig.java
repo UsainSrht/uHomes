@@ -88,10 +88,10 @@ public class MainConfig {
         noHomeItem = config.getConfigurationSection("gui.no_home");
         setHomeItem = config.getConfigurationSection("gui.sethome");
 
-        homeButtonLeftClick = HomeButtonAction.valueOf(config.getString("left_click"));
-        homeButtonRightClick = HomeButtonAction.valueOf(config.getString("right_click"));
-        homeButtonLeftClickWithShift = HomeButtonAction.valueOf(config.getString("left_click_with_shift"));
-        homeButtonRightClickWithShift = HomeButtonAction.valueOf(config.getString("right_click_with_shift"));
+        homeButtonLeftClick = HomeButtonAction.valueOf(config.getString("gui.left_click"));
+        homeButtonRightClick = HomeButtonAction.valueOf(config.getString("gui.right_click"));
+        homeButtonLeftClickWithShift = HomeButtonAction.valueOf(config.getString("gui.left_click_with_shift"));
+        homeButtonRightClickWithShift = HomeButtonAction.valueOf(config.getString("gui.right_click_with_shift"));
 
         setHomeGuiTitle = config.getString("anvil_gui.sethome.title");
         setHomeGuiTitleNotValid = config.getString("anvil_gui.sethome.home_name_not_valid");
