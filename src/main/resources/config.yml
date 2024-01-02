@@ -53,6 +53,8 @@ sum_limit_permissions: true
 # min-max
 home_name_character_limit: 1-32
 
+# use ".*" to allow every character
+# default only allows alphanumeric characters
 home_name_valid_characters: "[\\w\\-\\s]+"
 
 # true: opens an input gui to player asking for name of the home
