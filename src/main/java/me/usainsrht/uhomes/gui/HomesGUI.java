@@ -75,12 +75,6 @@ public class HomesGUI {
         int i = 0;
         for (Home home : homes) {
             ItemStack homeButton = getButton(home, i);
-            int finalI = i;
-            NBT.modify(homeButton, nbt -> {
-                ReadWriteNBT homeCompound = nbt.getOrCreateCompound("Home");
-                homeCompound.mergeCompound(home.getCompound());
-                homeCompound.setInteger("Index", finalI);
-            });
             inventory.setItem(getSlot(i), homeButton);
             i++;
         }
@@ -124,6 +118,12 @@ public class HomesGUI {
         } else {
             icon = ItemUtil.getItemFromYaml(defaultIcon, placeholders);
         }
+
+        NBT.modify(icon, nbt -> {
+            ReadWriteNBT homeCompound = nbt.getOrCreateCompound("Home");
+            homeCompound.mergeCompound(home.getCompound());
+            homeCompound.setInteger("Index", index);
+        });
 
         if (MainConfig.isHomesGuiIndexAmount()) icon.setAmount(index + 1);
 

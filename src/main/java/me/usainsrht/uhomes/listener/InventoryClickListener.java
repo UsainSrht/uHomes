@@ -44,7 +44,6 @@ public class InventoryClickListener implements Listener {
         ItemStack cursor = e.getCursor().clone();
         NBT.get(item, nbt -> {
             if (nbt.hasTag("Home")) {
-                player.closeInventory();
                 ReadableNBT homeCompound = nbt.getCompound("Home");
                 homeManager.getHomes(homeCompound.getUUID("Owner")).thenAccept(homes -> {
                     Optional<Home> optionalHome = homes.stream()
@@ -52,13 +51,14 @@ public class InventoryClickListener implements Listener {
                             .findFirst();
                     optionalHome.ifPresent(home -> {
                         if (!cursor.getType().isAir()) {
-                            home.setIcon(cursor.clone());
+                            home.setIcon(cursor);
                             e.setCurrentItem(HomesGUI.getButton(home, homeCompound.getInteger("Index")));
                             //HomesGUI.open(home.getOwner(), player);
                             return;
                         }
                         HomeButtonAction action = HomeButtonAction.getFromClick(e.getClick());
                         if (action == null) return;
+                        player.closeInventory();
                         switch (action) {
                             case TELEPORT -> homeManager.teleport(player, home);
                             case RELOCATE -> {
