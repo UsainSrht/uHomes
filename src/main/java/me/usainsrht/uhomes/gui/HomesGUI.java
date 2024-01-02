@@ -99,8 +99,7 @@ public class HomesGUI {
         // date formatter with fallback because of LastTeleport can be -1 (haven't teleported yet)
         placeholders[5] = MMUtil.date("last_teleport", LocalDateTime.ofInstant(Instant.ofEpochMilli(home.getLastTeleport()), ZoneOffset.UTC));
         placeholders[6] = Placeholder.parsed("index", String.valueOf(index));
-        placeholders[7] = Placeholder.parsed("name",
-                home.getName() == null ? MainConfig.getUnnamedHomeName().replace("<index>", String.valueOf(index)) : home.getName());
+        placeholders[7] = Placeholder.parsed("name", getHomeName(home, index));
 
         ItemStack icon;
         if (home.getIcon() != null) {
@@ -129,6 +128,10 @@ public class HomesGUI {
         if (MainConfig.isHomesGuiIndexAmount()) icon.setAmount(index + 1);
 
         return icon;
+    }
+
+    public static String getHomeName(Home home, int index) {
+        return home.getName() != null ? home.getName() : MainConfig.getUnnamedHomeName().replace("<index>", String.valueOf(index));
     }
 
 }

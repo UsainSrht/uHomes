@@ -219,6 +219,7 @@ public class HomeManager {
                 .onFinish(tt -> {
                     home.setLastTeleport(System.currentTimeMillis());
                     entity.teleport(home.getLocation());
+                    //todo make unnamed homes seen in chat instead of ""
                     MessageUtil.send(entity, MainConfig.getMessage("teleport"),
                             Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()));
                     SoundUtil.play(entity, MainConfig.getSound("teleport"));

@@ -53,6 +53,7 @@ public class HomeCommand extends Command {
                 CompletableFuture<List<Home>> homesFuture = UHomes.getInstance().getHomeManager().getHomes(player.getUniqueId());
                 if (homesFuture.isDone())
                     try {
+                        //todo add unnamed homes to tab complete
                         homesFuture.get().stream().map(Home::getName)
                                 .filter(Objects::nonNull)
                                 .forEach(homeNames::add);
