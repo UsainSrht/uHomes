@@ -1,6 +1,7 @@
 package me.usainsrht.uhomes.gui;
 
 import de.tr7zw.changeme.nbtapi.NBT;
+import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import me.usainsrht.uhomes.Home;
 import me.usainsrht.uhomes.HomeManager;
 import me.usainsrht.uhomes.UHomes;
@@ -74,7 +75,12 @@ public class HomesGUI {
         int i = 0;
         for (Home home : homes) {
             ItemStack homeButton = getButton(home, i);
-            NBT.modify(homeButton, nbt -> { nbt.getOrCreateCompound("Home").mergeCompound(home.getCompound()); });
+            int finalI = i;
+            NBT.modify(homeButton, nbt -> {
+                ReadWriteNBT homeCompound = nbt.getOrCreateCompound("Home");
+                homeCompound.mergeCompound(home.getCompound());
+                homeCompound.setInteger("Index", finalI);
+            });
             inventory.setItem(getSlot(i), homeButton);
             i++;
         }
@@ -114,6 +120,7 @@ public class HomesGUI {
                 lore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, FALSE));
             }
             iconMeta.lore(lore);
+            icon.setItemMeta(iconMeta);
         } else {
             icon = ItemUtil.getItemFromYaml(defaultIcon, placeholders);
         }

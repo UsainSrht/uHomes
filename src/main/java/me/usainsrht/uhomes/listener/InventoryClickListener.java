@@ -40,6 +40,8 @@ public class InventoryClickListener implements Listener {
 
         ItemStack item = e.getCurrentItem();
         if (item == null || item.isEmpty()) return;
+        //clone cursor itemstack to prevent from changing when we check it
+        ItemStack cursor = e.getCursor().clone();
         NBT.get(item, nbt -> {
             if (nbt.hasTag("Home")) {
                 player.closeInventory();
@@ -49,10 +51,10 @@ public class InventoryClickListener implements Listener {
                             .filter(home -> home.getCreated() == homeCompound.getLong("Created"))
                             .findFirst();
                     optionalHome.ifPresent(home -> {
-                        ItemStack cursor = e.getCursor();
                         if (!cursor.getType().isAir()) {
                             home.setIcon(cursor.clone());
-                            HomesGUI.open(home.getOwner(), player);
+                            e.setCurrentItem(HomesGUI.getButton(home, homeCompound.getInteger("Index")));
+                            //HomesGUI.open(home.getOwner(), player);
                             return;
                         }
                         HomeButtonAction action = HomeButtonAction.getFromClick(e.getClick());
