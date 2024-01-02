@@ -48,7 +48,8 @@ public class HomesGUI {
         HomeManager homeManager = UHomes.getInstance().getHomeManager();
         CompletableFuture<List<Home>> future = homeManager.getHomes(uuid);
         future.thenAccept(homes -> {
-            int rows = 2 + Math.min((int)Math.ceil(homes.size() / 7f), 4);
+            //             maximum 4 rows of homes // get 1 even if 0 homes
+            int rows = 2 + Math.min(Math.max((int)Math.ceil(homes.size() / 7f), 1), 4);
             open(player, homes, rows*9, homeManager.getHomeLimit(uuid));
         });
 

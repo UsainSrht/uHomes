@@ -88,6 +88,8 @@ public class SetHomeCommand extends Command {
             registerHome(player, location, name);
         } else if (MainConfig.isAskForNameBeforeSave()) {
             renameHome(player, null, location);
+        } else {
+            registerHome(player, location, null);
         }
     }
 

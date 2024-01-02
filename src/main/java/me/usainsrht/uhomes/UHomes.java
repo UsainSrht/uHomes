@@ -49,9 +49,8 @@ public final class UHomes extends JavaPlugin {
     }
 
     public void reload() {
+        reloadConfig();
         loadConfig();
-
-
     }
 
     public void loadConfig() {
