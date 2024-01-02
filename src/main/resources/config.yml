@@ -99,9 +99,9 @@ gui:
     lore:
       - ""
       - " <white>World: <world> "
-      - " <white>X: <gold><x:'#,###'> "
-      - " <white>Y: <gold><y:'#,###'> "
-      - " <white>Z: <gold><z:'#,###'> "
+      - " <white>X: <gold><x:'en-EN':'#,###'> "
+      - " <white>Y: <gold><y:'en-EN':'#,###'> "
+      - " <white>Z: <gold><z:'en-EN':'#,###'> "
       - ""
       - " <white>Created At: "
       - "  <gold><created:'yyyy-MM-dd HH:mm:ss'> "
