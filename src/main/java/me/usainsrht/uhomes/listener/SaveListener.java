@@ -1,6 +1,6 @@
 package me.usainsrht.uhomes.listener;
 
-import me.usainsrht.uhomes.HomeManager;
+import me.usainsrht.uhomes.manager.HomeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

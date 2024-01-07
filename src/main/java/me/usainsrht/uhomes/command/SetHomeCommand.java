@@ -5,7 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.usainsrht.uhomes.Home;
-import me.usainsrht.uhomes.HomeManager;
+import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.gui.HomesGUI;
@@ -67,6 +67,13 @@ public class SetHomeCommand extends Command {
     }
 
     public static void setHome(Player player, Location location, @Nullable String name) {
+        if (MainConfig.isSethomeClaimCheck()) {
+            if (!UHomes.getInstance().getClaimManager().canEnter(player, location)) {
+                MessageUtil.send(player, MainConfig.getMessage("not_allowed_to_sethome"));
+                SoundUtil.play(player, MainConfig.getSound("not_allowed_to_sethome"));
+                return;
+            }
+        }
         if (name != null) {
             name = name.trim();
             if (!MainConfig.getHomeNameCharLimit().isInBetween(name.length())) {

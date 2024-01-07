@@ -22,6 +22,8 @@ messages:
   teleport_cancel: "<dark_red><bold>🚫</bold> <red>You moved and cancelled the teleport."
   teleport_tick: ""
   teleport_between_worlds_permission: "<red>You don't have <underlined><permission></underlined> permission!"
+  not_allowed_to_teleport: "<red>You are not allowed to enter there!"
+  not_allowed_to_sethome: "<red>You are not allowed to sethome here!"
 
 sounds:
   reload: entity.villager.yes
@@ -77,6 +79,14 @@ load_chunk_before_tp: true
 # 20 = 1 second
 # use bypass to instant tp ex: home.teleport.bypass
 home_teleport_time_permission: "home.teleport."
+
+# prevents setting home on claimed areas when
+# lacking permissions.
+# Currently supported plugins: Lands, GriefPrevention
+sethome_claim_check: true
+
+# check if player is permitted to teleport that home
+teleport_claim_check: true
 
 gui:
   title: "<yellow><bold>Homes"

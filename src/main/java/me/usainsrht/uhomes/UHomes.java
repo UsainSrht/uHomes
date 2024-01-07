@@ -1,7 +1,9 @@
 package me.usainsrht.uhomes;
 
+import me.angeschossen.lands.api.LandsIntegration;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.usainsrht.uhomes.command.CommandHandler;
 import me.usainsrht.uhomes.command.HomeCommand;
 import me.usainsrht.uhomes.command.SetHomeCommand;
@@ -9,6 +11,8 @@ import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.listener.InventoryClickListener;
 import me.usainsrht.uhomes.listener.JoinListener;
 import me.usainsrht.uhomes.listener.SaveListener;
+import me.usainsrht.uhomes.manager.ClaimManager;
+import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.teleport.TeleportManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,6 +26,7 @@ public final class UHomes extends JavaPlugin {
     private static final int pluginID = 20539;
     private Metrics metrics;
     private HomeManager homeManager;
+    private ClaimManager claimManager;
     private TeleportManager teleportManager;
     private Commodore commodore;
     public File HOMES_FOLDER;
@@ -34,6 +39,10 @@ public final class UHomes extends JavaPlugin {
 
         this.homeManager = new HomeManager(this);
         this.teleportManager = new TeleportManager(this);
+        Object claimAPI = null;
+        if (getServer().getPluginManager().isPluginEnabled("Lands")) claimAPI = LandsIntegration.of(this);
+        else if (getServer().getPluginManager().isPluginEnabled("GriefPrevention")) claimAPI = GriefPrevention.instance;
+        this.claimManager = new ClaimManager(this, claimAPI);
 
         loadConfig();
 
@@ -84,6 +93,10 @@ public final class UHomes extends JavaPlugin {
 
     public HomeManager getHomeManager() {
         return homeManager;
+    }
+
+    public ClaimManager getClaimManager() {
+        return claimManager;
     }
 
     public TeleportManager getTeleportManager() {

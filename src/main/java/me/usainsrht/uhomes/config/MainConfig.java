@@ -25,6 +25,8 @@ public class MainConfig {
     private static String unnamedHomeName;
     private static boolean loadChunkBeforeTp;
     private static String homeTeleportTimePerm;
+    private static boolean sethomeClaimCheck;
+    private static boolean teleportClaimCheck;
 
     private static String homesGuiTitle;
     private static boolean homesGuiIndexAmount;
@@ -79,6 +81,8 @@ public class MainConfig {
         unnamedHomeName = config.getString("unnamed_home");
         loadChunkBeforeTp = config.getBoolean("load_chunk_before_tp");
         homeTeleportTimePerm = config.getString("home_teleport_time_permission");
+        sethomeClaimCheck = config.getBoolean("sethome_claim_check");
+        teleportClaimCheck = config.getBoolean("teleport_claim_check");
 
         homesGuiTitle = config.getString("gui.title");
         homesGuiIndexAmount = config.getBoolean("gui.index_amount");
@@ -192,6 +196,14 @@ public class MainConfig {
 
     public static String getHomeNameValidChars() {
         return homeNameValidChars;
+    }
+
+    public static boolean isSethomeClaimCheck() {
+        return sethomeClaimCheck;
+    }
+
+    public static boolean isTeleportClaimCheck() {
+        return teleportClaimCheck;
     }
 
     public static ConfigurationSection getDefaultHomeItem() {

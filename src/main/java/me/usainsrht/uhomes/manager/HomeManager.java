@@ -1,9 +1,11 @@
-package me.usainsrht.uhomes;
+package me.usainsrht.uhomes.manager;
 
 import de.tr7zw.changeme.nbtapi.NBTCompoundList;
 import de.tr7zw.changeme.nbtapi.NBTFile;
 import de.tr7zw.changeme.nbtapi.NBTList;
 import de.tr7zw.changeme.nbtapi.NBTListCompound;
+import me.usainsrht.uhomes.Home;
+import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.teleport.TimedTeleport;
@@ -211,6 +213,13 @@ public class HomeManager {
             SoundUtil.play(entity, MainConfig.getSound("teleport_between_worlds_permission"));
             return;
         }
+        if (MainConfig.isTeleportClaimCheck() && entity instanceof Player player) {
+            if (!plugin.getClaimManager().canEnter(player, home.getLocation())) {
+                MessageUtil.send(entity, MainConfig.getMessage("not_allowed_to_teleport"));
+                SoundUtil.play(entity, MainConfig.getSound("not_allowed_to_teleport"));
+                return;
+            }
+        }
         TimedTeleport timedTeleport = new TimedTeleport()
                 .entity(entity)
                 .location(home.getLocation())
@@ -254,11 +263,20 @@ public class HomeManager {
 
     public void relocate(Player player, Home home) {
         //todo confirmation
-        home.setLocation(player.getLocation().clone());
+        Location location = player.getLocation().clone();
+        if (MainConfig.isSethomeClaimCheck()) {
+            if (!UHomes.getInstance().getClaimManager().canEnter(player, location)) {
+                MessageUtil.send(player, MainConfig.getMessage("not_allowed_to_sethome"));
+                SoundUtil.play(player, MainConfig.getSound("not_allowed_to_sethome"));
+                return;
+            }
+        }
+        home.setLocation(location);
     }
 
     public void delete(Player player, Home home) {
         //todo confirmation
+        //todo logging
         UUID uuid = home.getOwner();
         if (loadedHomes.containsKey(uuid)) {
             List<Home> homes = loadedHomes.get(uuid);

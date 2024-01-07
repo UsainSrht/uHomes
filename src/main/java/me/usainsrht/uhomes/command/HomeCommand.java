@@ -6,7 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.usainsrht.uhomes.Home;
-import me.usainsrht.uhomes.HomeManager;
+import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.gui.HomesGUI;

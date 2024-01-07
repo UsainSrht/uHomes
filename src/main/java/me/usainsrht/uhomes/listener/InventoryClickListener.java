@@ -1,21 +1,17 @@
 package me.usainsrht.uhomes.listener;
 
 import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import me.usainsrht.uhomes.Home;
-import me.usainsrht.uhomes.HomeManager;
+import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.gui.HomeButtonAction;
 import me.usainsrht.uhomes.gui.HomesGUI;
-import me.usainsrht.uhomes.util.ItemUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
