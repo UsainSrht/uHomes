@@ -67,6 +67,15 @@ public class SetHomeCommand extends Command {
     }
 
     public static void setHome(Player player, Location location, @Nullable String name) {
+        //check permissions because of call from gui
+        YamlCommand cmd = MainConfig.getSetHomeCommand();
+        if (!player.hasPermission(cmd.getPermission())) {
+            Component permMsg = MiniMessage.miniMessage().deserialize(cmd.getPermissionMessage(),
+                    Placeholder.unparsed("permission", cmd.getPermission()));
+            player.sendMessage(permMsg);
+            SoundUtil.play(player, cmd.getPermissionSounds());
+            return;
+        }
         if (MainConfig.isSethomeClaimCheck()) {
             if (!UHomes.getInstance().getClaimManager().canEnter(player, location)) {
                 MessageUtil.send(player, MainConfig.getMessage("not_allowed_to_sethome"));

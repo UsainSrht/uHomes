@@ -31,11 +31,11 @@ public class ClaimManager {
         if (claimAPI instanceof LandsIntegration api) {
             Area area = api.getArea(location);
             if (area == null) return true;
-            return (area.canEnter(api.getLandPlayer(player.getUniqueId()), false));
+            return (area.isTrusted(player.getUniqueId()));
         } else if (claimAPI instanceof GriefPrevention api) {
             Claim claim = api.dataStore.getClaimAt(location, true, null);
             if (claim == null) return true;
-            return claim.hasExplicitPermission(player, ClaimPermission.Access);
+            return claim.hasExplicitPermission(player, ClaimPermission.Manage);
         }
         return true;
     }
