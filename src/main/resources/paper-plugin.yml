@@ -5,7 +5,7 @@ api-version: '1.20'
 authors:
   - UsainSrht
 dependencies:
-  bootstrap:
+  server:
     Lands:
       load: BEFORE
       required: false
