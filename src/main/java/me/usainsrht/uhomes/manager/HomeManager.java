@@ -257,7 +257,6 @@ public class HomeManager {
                     SoundUtil.play(entity, MainConfig.getSound("teleport_start"));
                 })
                 ;
-
         plugin.getTeleportManager().start(timedTeleport);
     }
 

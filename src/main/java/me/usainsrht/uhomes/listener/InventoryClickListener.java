@@ -7,6 +7,7 @@ import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.gui.HomeButtonAction;
 import me.usainsrht.uhomes.gui.HomesGUI;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -55,8 +56,12 @@ public class InventoryClickListener implements Listener {
                         HomeButtonAction action = HomeButtonAction.getFromClick(e.getClick());
                         if (action == null) return;
                         player.closeInventory();
+                        Bukkit.broadcastMessage("tp call from click " + action);
                         switch (action) {
-                            case TELEPORT -> homeManager.teleport(player, home);
+                            case TELEPORT -> {
+                                Bukkit.broadcastMessage("case teleport");
+                                homeManager.teleport(player, home);
+                            }
                             case RELOCATE -> {
                                 homeManager.relocate(player, home);
                                 HomesGUI.open(home.getOwner(), player);

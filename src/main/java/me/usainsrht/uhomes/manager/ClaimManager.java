@@ -28,7 +28,9 @@ public class ClaimManager {
     }
 
     public boolean canEnter(Player player, Location location) {
-        if (claimAPI instanceof LandsIntegration api) {
+        if (claimAPI == null) return true;
+        //todo stops code silently when class is undefined
+        else if (claimAPI instanceof LandsIntegration api) {
             Area area = api.getArea(location);
             if (area == null) return true;
             return (area.isTrusted(player.getUniqueId()));

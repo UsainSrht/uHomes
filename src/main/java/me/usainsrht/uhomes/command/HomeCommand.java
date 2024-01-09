@@ -16,6 +16,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -88,6 +89,7 @@ public class HomeCommand extends Command {
                     homesFuture.thenAccept(homes -> {
                         for (Home home : homes) {
                             if (home.getName() != null && home.getName().equalsIgnoreCase(name)) {
+                                Bukkit.broadcastMessage("tp call from cmd");
                                 homeManager.teleport(player, home);
                                 return;
                             }

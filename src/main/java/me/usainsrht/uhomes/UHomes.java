@@ -39,12 +39,10 @@ public final class UHomes extends JavaPlugin {
 
         this.homeManager = new HomeManager(this);
         this.teleportManager = new TeleportManager(this);
-        //Bukkit.getScheduler().runTaskLater(this, () -> {
-            Object claimAPI = null;
-            if (getServer().getPluginManager().isPluginEnabled("Lands")) claimAPI = LandsIntegration.of(this);
-            else if (getServer().getPluginManager().isPluginEnabled("GriefPrevention")) claimAPI = GriefPrevention.instance;
-            this.claimManager = new ClaimManager(this, claimAPI);
-        //}, 1L);
+        Object claimAPI = null;
+        if (getServer().getPluginManager().isPluginEnabled("Lands")) claimAPI = LandsIntegration.of(this);
+        else if (getServer().getPluginManager().isPluginEnabled("GriefPrevention")) claimAPI = GriefPrevention.instance;
+        this.claimManager = new ClaimManager(this, claimAPI);
 
         loadConfig();
 
