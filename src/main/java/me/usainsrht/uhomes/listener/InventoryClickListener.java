@@ -56,10 +56,8 @@ public class InventoryClickListener implements Listener {
                         HomeButtonAction action = HomeButtonAction.getFromClick(e.getClick());
                         if (action == null) return;
                         player.closeInventory();
-                        Bukkit.broadcastMessage("tp call from click " + action);
                         switch (action) {
                             case TELEPORT -> {
-                                Bukkit.broadcastMessage("case teleport");
                                 homeManager.teleport(player, home);
                             }
                             case RELOCATE -> {

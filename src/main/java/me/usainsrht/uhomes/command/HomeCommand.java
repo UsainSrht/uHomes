@@ -89,7 +89,6 @@ public class HomeCommand extends Command {
                     homesFuture.thenAccept(homes -> {
                         for (Home home : homes) {
                             if (home.getName() != null && home.getName().equalsIgnoreCase(name)) {
-                                Bukkit.broadcastMessage("tp call from cmd");
                                 homeManager.teleport(player, home);
                                 return;
                             }
