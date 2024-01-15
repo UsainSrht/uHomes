@@ -3,7 +3,9 @@ package me.usainsrht.uhomes;
 import me.angeschossen.lands.api.LandsIntegration;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import me.usainsrht.uhomes.claim_interfaces.ClaimAPI;
+import me.usainsrht.uhomes.claim_interfaces.GriefPrevention;
+import me.usainsrht.uhomes.claim_interfaces.Lands;
 import me.usainsrht.uhomes.command.CommandHandler;
 import me.usainsrht.uhomes.command.HomeCommand;
 import me.usainsrht.uhomes.command.SetHomeCommand;
@@ -39,9 +41,11 @@ public final class UHomes extends JavaPlugin {
 
         this.homeManager = new HomeManager(this);
         this.teleportManager = new TeleportManager(this);
-        Object claimAPI = null;
-        if (getServer().getPluginManager().isPluginEnabled("Lands")) claimAPI = LandsIntegration.of(this);
-        else if (getServer().getPluginManager().isPluginEnabled("GriefPrevention")) claimAPI = GriefPrevention.instance;
+        ClaimAPI claimAPI = null;
+        if (getServer().getPluginManager().isPluginEnabled("Lands"))
+            claimAPI = new Lands(LandsIntegration.of(this));
+        else if (getServer().getPluginManager().isPluginEnabled("GriefPrevention"))
+            claimAPI = new GriefPrevention(me.ryanhamshire.GriefPrevention.GriefPrevention.instance);
         this.claimManager = new ClaimManager(this, claimAPI);
 
         loadConfig();

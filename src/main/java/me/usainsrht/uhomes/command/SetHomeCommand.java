@@ -77,7 +77,7 @@ public class SetHomeCommand extends Command {
             return;
         }
         if (MainConfig.isSethomeClaimCheck()) {
-            if (!UHomes.getInstance().getClaimManager().canEnter(player, location)) {
+            if (!UHomes.getInstance().getClaimManager().getClaimAPI().canEnter(player, location)) {
                 MessageUtil.send(player, MainConfig.getMessage("not_allowed_to_sethome"));
                 SoundUtil.play(player, MainConfig.getSound("not_allowed_to_sethome"));
                 return;

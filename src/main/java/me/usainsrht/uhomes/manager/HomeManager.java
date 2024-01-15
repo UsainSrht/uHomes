@@ -214,7 +214,7 @@ public class HomeManager {
             return;
         }
         if (MainConfig.isTeleportClaimCheck() && entity instanceof Player player) {
-            if (!plugin.getClaimManager().canEnter(player, home.getLocation())) {
+            if (!plugin.getClaimManager().getClaimAPI().canEnter(player, home.getLocation())) {
                 MessageUtil.send(entity, MainConfig.getMessage("not_allowed_to_teleport"));
                 SoundUtil.play(entity, MainConfig.getSound("not_allowed_to_teleport"));
                 return;
@@ -264,7 +264,7 @@ public class HomeManager {
         //todo confirmation
         Location location = player.getLocation().clone();
         if (MainConfig.isSethomeClaimCheck()) {
-            if (!UHomes.getInstance().getClaimManager().canEnter(player, location)) {
+            if (!UHomes.getInstance().getClaimManager().getClaimAPI().canEnter(player, location)) {
                 MessageUtil.send(player, MainConfig.getMessage("not_allowed_to_sethome"));
                 SoundUtil.play(player, MainConfig.getSound("not_allowed_to_sethome"));
                 return;
