@@ -12,8 +12,6 @@ import me.usainsrht.uhomes.teleport.TimedTeleport;
 import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.NBTUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
