@@ -1,11 +1,11 @@
-package me.usainsrht.uhomes.claim_interfaces;
+package me.usainsrht.uhomes.protected_are_interfaces;
 
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-public class GriefPrevention implements ClaimAPI {
+public class GriefPrevention implements ProtectedAreaAPI {
 
     private me.ryanhamshire.GriefPrevention.GriefPrevention instance;
 

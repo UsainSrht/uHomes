@@ -11,6 +11,7 @@ import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.teleport.TimedTeleport;
 import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.NBTUtil;
+import me.usainsrht.uhomes.util.PermUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -147,35 +148,9 @@ public class HomeManager {
     }
 
     public int getHomeLimit(UUID uuid) {
-        return getHomeLimit(Bukkit.getEntity(uuid));
-    }
-
-    public int getHomeLimit(Permissible permissible) {
-        if (MainConfig.isSumHomeLimits()) {
-            int total = 0;
-            for (PermissionAttachmentInfo permInfo : permissible.getEffectivePermissions()) {
-                String perm = permInfo.getPermission();
-                if (!perm.startsWith(MainConfig.getHomeLimitPermission())) continue;
-                String substr = perm.substring(MainConfig.getHomeLimitPermission().length());
-                try {
-                    int number = Integer.parseInt(substr);
-                    total += number;
-                } catch (NumberFormatException ignore) {}
-            }
-            return total;
-        } else {
-            int highest = 0;
-            for (PermissionAttachmentInfo permInfo : permissible.getEffectivePermissions()) {
-                String perm = permInfo.getPermission();
-                if (!perm.startsWith(MainConfig.getHomeLimitPermission())) continue;
-                String substr = perm.substring(MainConfig.getHomeLimitPermission().length());
-                try {
-                    int number = Integer.parseInt(substr);
-                    if (number > highest) highest = number;
-                } catch (NumberFormatException ignore) {}
-            }
-            return highest;
-        }
+        if      (MainConfig.isLpHomeLimit())   return PermUtil.getMetaLimit(MainConfig.getLpHomeLimitName(), plugin.getLuckPerms().getUserManager().getUser(uuid));
+        else if (MainConfig.isSumHomeLimits()) return PermUtil.getSummedLimit(MainConfig.getHomeLimitPermission(), Bukkit.getEntity(uuid));
+        else                                   return PermUtil.getHighestLimit(MainConfig.getHomeLimitPermission(), Bukkit.getEntity(uuid));
     }
 
     public int getHomeTeleportTime(UUID uuid) {
@@ -212,7 +187,7 @@ public class HomeManager {
             return;
         }
         if (MainConfig.isTeleportClaimCheck() && entity instanceof Player player) {
-            if (!plugin.getClaimManager().getClaimAPI().canEnter(player, home.getLocation())) {
+            if (!plugin.getClaimManager().canEnter(player, home.getLocation())) {
                 MessageUtil.send(entity, MainConfig.getMessage("not_allowed_to_teleport"));
                 SoundUtil.play(entity, MainConfig.getSound("not_allowed_to_teleport"));
                 return;
@@ -262,7 +237,7 @@ public class HomeManager {
         //todo confirmation
         Location location = player.getLocation().clone();
         if (MainConfig.isSethomeClaimCheck()) {
-            if (!UHomes.getInstance().getClaimManager().getClaimAPI().canEnter(player, location)) {
+            if (!UHomes.getInstance().getClaimManager().canEnter(player, location)) {
                 MessageUtil.send(player, MainConfig.getMessage("not_allowed_to_sethome"));
                 SoundUtil.play(player, MainConfig.getSound("not_allowed_to_sethome"));
                 return;

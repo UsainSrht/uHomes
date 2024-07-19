@@ -52,6 +52,13 @@ home_limit_permission: "home.limit."
 # false: use highest home limit permission
 sum_limit_permissions: true
 
+# use luckperms meta data for home limit instead of permission
+luckperms_meta_limit: false
+
+# do not use "." (dot) in it
+# only used if luckperms_meta_limit setting is set to true
+luckperms_meta_name: "home-limit"
+
 # min-max
 home_name_character_limit: 1-32
 

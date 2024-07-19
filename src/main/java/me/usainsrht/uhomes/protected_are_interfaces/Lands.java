@@ -1,11 +1,11 @@
-package me.usainsrht.uhomes.claim_interfaces;
+package me.usainsrht.uhomes.protected_are_interfaces;
 
 import me.angeschossen.lands.api.LandsIntegration;
 import me.angeschossen.lands.api.land.Area;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-public class Lands implements ClaimAPI {
+public class Lands implements ProtectedAreaAPI {
 
     private LandsIntegration landsIntegration;
 

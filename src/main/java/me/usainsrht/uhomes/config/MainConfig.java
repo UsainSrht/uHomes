@@ -18,6 +18,8 @@ public class MainConfig {
 
     private static String homeLimitPermission;
     private static boolean sumHomeLimits;
+    private static boolean lpHomeLimit;
+    private static String lpHomeLimitName;
     private static IntArray homeNameCharLimit;
     private static String homeNameValidChars;
     private static boolean askForNameBeforeSave;
@@ -74,6 +76,8 @@ public class MainConfig {
 
         homeLimitPermission = config.getString("home_limit_permission");
         sumHomeLimits = config.getBoolean("sum_limit_permissions");
+        lpHomeLimit = config.getBoolean("luckperms_meta_limit");
+        lpHomeLimitName = config.getString("luckperms_meta_name");
         homeNameCharLimit = new IntArray(config.getString("home_name_character_limit"));
         homeNameValidChars = config.getString("home_name_valid_characters");
         askForNameBeforeSave = config.getBoolean("ask_for_name_before_save");
@@ -188,6 +192,14 @@ public class MainConfig {
 
     public static boolean isSumHomeLimits() {
         return sumHomeLimits;
+    }
+
+    public static boolean isLpHomeLimit() {
+        return lpHomeLimit;
+    }
+
+    public static String getLpHomeLimitName() {
+        return lpHomeLimitName;
     }
 
     public static IntArray getHomeNameCharLimit() {
