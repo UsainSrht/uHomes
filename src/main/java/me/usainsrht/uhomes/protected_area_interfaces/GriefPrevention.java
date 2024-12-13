@@ -1,4 +1,4 @@
-package me.usainsrht.uhomes.protected_are_interfaces;
+package me.usainsrht.uhomes.protected_area_interfaces;
 
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;

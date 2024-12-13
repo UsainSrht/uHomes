@@ -1,7 +1,7 @@
 package me.usainsrht.uhomes.manager;
 
 import me.usainsrht.uhomes.UHomes;
-import me.usainsrht.uhomes.protected_are_interfaces.ProtectedAreaAPI;
+import me.usainsrht.uhomes.protected_area_interfaces.ProtectedAreaAPI;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
