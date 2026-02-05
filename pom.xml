@@ -104,10 +104,9 @@
             <url>https://repo.spaceio.xyz/repository/maven-public/</url>
         </repository>
         <repository>
-            <id>codemc-repo</id>
-            <url>https://repo.codemc.io/repository/maven-public/</url>
-            <layout>default</layout>
-        </repository>
+           <id>mvn-wesjd-net</id>
+           <url>https://mvn.wesjd.net/</url>
+         </repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
