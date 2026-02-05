@@ -1,0 +1,46 @@
+name: uHomes Release Publisher
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish-plugin:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v4
+
+      - name: Configure Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Extract version from tag
+        id: version_info
+        run: echo "plugin_version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Compile uHomes plugin
+        run: mvn -B package --file pom.xml
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "uHomes ${{ steps.version_info.outputs.plugin_version }}"
+          body: |
+            ## uHomes Plugin Release
+            
+            **Version:** ${{ steps.version_info.outputs.plugin_version }}
+            
+            Download the JAR file below to install this Minecraft plugin.
+          files: target/uHomes-*.jar
+          draft: false
+          prerelease: false
+          generate_release_notes: true

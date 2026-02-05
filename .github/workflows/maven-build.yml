@@ -1,29 +1,35 @@
-name: Maven Build
+name: uHomes Plugin CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
 
 jobs:
-  build:
-
+  compile-plugin:
     runs-on: ubuntu-latest
+    
     permissions:
       contents: read
-      packages: write
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'oracle'
-          server-id: github
-          settings-path: ${{ github.workspace }}
+      - name: Fetch repository
+        uses: actions/checkout@v4
 
-      - name: Build with Maven
+      - name: Configure Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Compile uHomes plugin
         run: mvn -B package --file pom.xml
 
-      - uses: actions/upload-artifact@v1
+      - name: Store compiled JAR
+        uses: actions/upload-artifact@v4
         with:
-          name: artifact
-          path: target/
+          name: uHomes-plugin
+          path: target/uHomes-*.jar
+          retention-days: 14
