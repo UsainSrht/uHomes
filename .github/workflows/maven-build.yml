@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Fetch repository
@@ -24,12 +24,46 @@ jobs:
           distribution: "temurin"
           cache: "maven"
 
+      - name: Extract version from pom.xml
+        id: version_info
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "plugin_version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Compile uHomes plugin
         run: mvn -B package --file pom.xml
 
       - name: Store compiled JAR
         uses: actions/upload-artifact@v4
         with:
-          name: uHomes-plugin
+          name: uHomes-${{ steps.version_info.outputs.plugin_version }}
           path: target/uHomes-*.jar
           retention-days: 14
+
+      - name: Delete existing latest release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: gh release delete latest --cleanup-tag --yes || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "uHomes ${{ steps.version_info.outputs.plugin_version }} (Latest Build)"
+          body: |
+            ## uHomes Plugin - Latest Development Build
+            
+            **Version:** ${{ steps.version_info.outputs.plugin_version }}
+            **Build:** #${{ github.run_number }}
+            **Commit:** ${{ github.sha }}
+            
+            This is an automatically generated development build from the main branch.
+            Download the JAR file below to install this Minecraft plugin.
+            
+            > ⚠️ This is a development build and may contain bugs. For stable releases, check the [releases page](../../releases) for version tags.
+          files: target/uHomes-*.jar
+          draft: false
+          prerelease: true
+          generate_release_notes: false
