@@ -43,9 +43,6 @@ public final class UHomes extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        this.metrics = new Metrics(this, pluginID);
-        this.metrics.addCustomChart(new SimplePie("luckperms_meta_limit", () -> MainConfig.isLpHomeLimit() ? "Enabled" : "Disabled"));
-
         this.homeManager = new HomeManager(this);
         this.teleportManager = new TeleportManager(this);
         List<ProtectedAreaAPI> protectedAreaAPIs = new ArrayList<>();
@@ -71,6 +68,10 @@ public final class UHomes extends JavaPlugin {
         registerCommands();
 
         registerListeners();
+
+        this.metrics = new Metrics(this, pluginID);
+        this.metrics.addCustomChart(
+                new SimplePie("luckperms_meta_limit", () -> MainConfig.isLpHomeLimit() ? "Enabled" : "Disabled"));
     }
 
     @Override
