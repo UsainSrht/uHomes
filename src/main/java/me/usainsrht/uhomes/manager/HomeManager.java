@@ -13,6 +13,7 @@ import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.NBTUtil;
 import me.usainsrht.uhomes.util.PermUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
+import me.usainsrht.uhomes.util.SchedulerUtil;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
@@ -45,7 +46,7 @@ public class HomeManager {
         if (loadedHomes.containsKey(uuid)) {
             future.complete(loadedHomes.get(uuid));
         } else {
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            SchedulerUtil.runAsync(plugin, () -> {
                 NBTFile nbtFile = getNBTFile(uuid);
                 NBTCompoundList compoundList = nbtFile.getCompoundList("Homes");
                 List<Home> homeList = new ArrayList<>();

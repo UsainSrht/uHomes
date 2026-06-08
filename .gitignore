@@ -111,3 +111,10 @@ buildNumber.properties
 
 # Common working directory
 run/
+
+# Antigravity
+.antigravityignore
+
+# Scratch scripts and temporary text files
+scratch/
+*.txt

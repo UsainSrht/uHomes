@@ -1,6 +1,7 @@
 package me.usainsrht.uhomes.listener;
 
 import me.usainsrht.uhomes.manager.HomeManager;
+import me.usainsrht.uhomes.util.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,7 +20,7 @@ public class JoinListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent e) {
         Player player = e.getPlayer();
-        Bukkit.getScheduler().runTaskLater(homeManager.getPlugin(), () -> {
+        SchedulerUtil.runLater(homeManager.getPlugin(), () -> {
             if (!player.isOnline()) return;
             homeManager.getHomes(player.getUniqueId());
         }, 1L);

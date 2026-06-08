@@ -46,6 +46,10 @@ public class MainConfig {
     private static String setHomeGuiTitleNotValid;
     private static String setHomeGuiTitleCharLimit;
     private static String setHomeGuiText;
+    private static boolean dialogEnabled;
+    private static String dialogTitle;
+    private static String dialogText;
+    private static boolean anvilGuiEnabled;
     private static HashMap<Integer, ConfigurationSection> setHomeGuiSlots;
 
     private static HashMap<String, String> worldNames;
@@ -101,14 +105,21 @@ public class MainConfig {
         homeButtonLeftClickWithShift = HomeButtonAction.valueOf(config.getString("gui.left_click_with_shift"));
         homeButtonRightClickWithShift = HomeButtonAction.valueOf(config.getString("gui.right_click_with_shift"));
 
-        setHomeGuiTitle = config.getString("anvil_gui.sethome.title");
-        setHomeGuiTitleNotValid = config.getString("anvil_gui.sethome.home_name_not_valid");
-        setHomeGuiTitleCharLimit = config.getString("anvil_gui.sethome.home_name_limit");
-        setHomeGuiText = config.getString("anvil_gui.sethome.text");
+        dialogEnabled = config.getBoolean("input.dialog.enabled", true);
+        dialogTitle = config.getString("input.dialog.title");
+        dialogText = config.getString("input.dialog.text");
+
+        anvilGuiEnabled = config.getBoolean("input.anvil_gui.enabled", true);
+        setHomeGuiTitle = config.getString("input.anvil_gui.title");
+        setHomeGuiTitleNotValid = config.getString("input.anvil_gui.home_name_not_valid");
+        setHomeGuiTitleCharLimit = config.getString("input.anvil_gui.home_name_limit");
+        setHomeGuiText = config.getString("input.anvil_gui.text");
         setHomeGuiSlots = new HashMap<>();
-        config.getConfigurationSection("anvil_gui.sethome.slots").getKeys(false).forEach(keyString -> {
-            setHomeGuiSlots.put(Integer.parseInt(keyString), config.getConfigurationSection("anvil_gui.sethome.slots."+keyString));
-        });
+        if (config.contains("input.anvil_gui.slots")) {
+            config.getConfigurationSection("input.anvil_gui.slots").getKeys(false).forEach(keyString -> {
+                setHomeGuiSlots.put(Integer.parseInt(keyString), config.getConfigurationSection("input.anvil_gui.slots."+keyString));
+            });
+        }
 
         worldNames = new HashMap<>();
         config.getConfigurationSection("world_names").getKeys(false).forEach(key -> {
@@ -248,6 +259,22 @@ public class MainConfig {
 
     public static String getSetHomeGuiText() {
         return setHomeGuiText;
+    }
+
+    public static boolean isDialogEnabled() {
+        return dialogEnabled;
+    }
+
+    public static String getDialogTitle() {
+        return dialogTitle;
+    }
+
+    public static String getDialogText() {
+        return dialogText;
+    }
+
+    public static boolean isAnvilGuiEnabled() {
+        return anvilGuiEnabled;
     }
 
     public static String getSetHomeGuiTitle() {

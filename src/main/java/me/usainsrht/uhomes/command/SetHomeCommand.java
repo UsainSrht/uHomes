@@ -12,6 +12,8 @@ import me.usainsrht.uhomes.gui.HomesGUI;
 import me.usainsrht.uhomes.util.ItemUtil;
 import me.usainsrht.uhomes.util.MMUtil;
 import me.usainsrht.uhomes.util.MessageUtil;
+import me.usainsrht.uhomes.util.DialogUtil;
+import me.usainsrht.uhomes.util.DialogImpl;
 import me.usainsrht.uhomes.util.SoundUtil;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -114,6 +116,25 @@ public class SetHomeCommand extends Command {
     * pass location null to rename home
     * */
     public static void renameHome(Player player, @Nullable Home home, @Nullable Location location) {
+        if (MainConfig.isDialogEnabled() && DialogUtil.isSupported()) {
+            DialogImpl.sendHomeForm(player, home, location, (name) -> {
+                if (home == null) {
+                    registerHome(player, location, name);
+                    HomesGUI.open(player.getUniqueId(), player);
+                }
+                else {
+                    home.setName(name);
+                    HomesGUI.open(home.getOwner(), player);
+                }
+            });
+            return;
+        }
+
+        if (!MainConfig.isAnvilGuiEnabled()) {
+            // Fallback to chat or just do nothing since anvil is disabled and dialog is unsupported
+            return;
+        }
+
         AnvilGUI.Builder builder = new AnvilGUI.Builder()
                 .plugin(UHomes.getInstance())
                 .jsonTitle(MMUtil.mmStringToJson(MainConfig.getSetHomeGuiTitle()));

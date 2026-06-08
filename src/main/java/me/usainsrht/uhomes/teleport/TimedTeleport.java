@@ -1,7 +1,7 @@
 package me.usainsrht.uhomes.teleport;
 
 import me.usainsrht.uhomes.UHomes;
-import org.bukkit.Bukkit;
+import me.usainsrht.uhomes.util.SchedulerUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 
@@ -12,7 +12,7 @@ public class TimedTeleport {
     private Entity entity;
     private Location startLocation;
     private Location targetLocation;
-    private int taskID;
+    private Object task;
     private int ticksTotal;
     private int ticksPassed;
     private int ticksToRunOnTick;
@@ -26,7 +26,7 @@ public class TimedTeleport {
 
     public void start(boolean loadChunk) {
         startLocation = entity.getLocation().clone();
-        taskID = Bukkit.getScheduler().runTaskTimer(UHomes.getInstance(), () -> {
+        task = SchedulerUtil.runTimer(UHomes.getInstance(), () -> {
             if (ticksPassed == 0) onStart.accept(this);
             if (ticksPassed % ticksToRunOnTick == 0) onTick.accept(this);
             if (ticksPassed >= ticksTotal) {
@@ -37,7 +37,7 @@ public class TimedTeleport {
             ticksPassed++;
 
             if (startLocation.distance(entity.getLocation()) > 0.15) cancel();
-        }, 1L, 1L).getTaskId();
+        }, 1L, 1L);
         if (loadChunk) targetLocation.getWorld().getChunkAtAsyncUrgently(targetLocation);
     }
 
@@ -54,7 +54,10 @@ public class TimedTeleport {
     }
 
     private void stopTimer() {
-        Bukkit.getScheduler().cancelTask(taskID);
+        if (task != null) {
+            SchedulerUtil.cancelTask(task);
+            task = null;
+        }
     }
 
     //builder methods
@@ -107,8 +110,8 @@ public class TimedTeleport {
         return done;
     }
 
-    public int getTaskID() {
-        return taskID;
+    public Object getTask() {
+        return task;
     }
 
     public Location getTargetLocation() {

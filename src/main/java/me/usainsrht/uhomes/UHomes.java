@@ -21,6 +21,7 @@ import net.luckperms.api.LuckPermsProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public final class UHomes extends JavaPlugin {
         instance = this;
 
         this.metrics = new Metrics(this, pluginID);
+        this.metrics.addCustomChart(new SimplePie("luckperms_meta_limit", () -> MainConfig.isLpHomeLimit() ? "Enabled" : "Disabled"));
 
         this.homeManager = new HomeManager(this);
         this.teleportManager = new TeleportManager(this);
@@ -55,10 +57,14 @@ public final class UHomes extends JavaPlugin {
 
         loadConfig();
 
-        try {
-            luckPerms = LuckPermsProvider.get();
-        } catch (Exception e) {
-            getLogger().info("couldn't hook into luckperms " + e.getClass().getName());
+        if (getServer().getPluginManager().isPluginEnabled("LuckPerms")) {
+            try {
+                luckPerms = LuckPermsProvider.get();
+            } catch (Exception e) {
+                getLogger().info("couldn't hook into luckperms " + e.getClass().getName());
+            }
+        } else {
+            getLogger().info("LuckPerms not found, continuing without it.");
         }
 
         commodore = CommodoreProvider.getCommodore(this);

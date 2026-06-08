@@ -149,8 +149,15 @@ gui:
       - " <yellow>Click to create new home! "
       - ""
 
-anvil_gui:
-  sethome:
+# The input method used for creating and renaming homes.
+# It will prioritize Dialog over Anvil GUI if both are enabled and the server version supports it (1.21.4+).
+input:
+  dialog:
+    enabled: true
+    title: "<red>↓ Home name ↓"
+    text: "Please enter a home name."
+  anvil_gui:
+    enabled: true
     title: "<red>↓ Home name ↓"
     text: " "
     slots:
