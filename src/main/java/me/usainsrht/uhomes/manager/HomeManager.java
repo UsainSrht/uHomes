@@ -54,9 +54,12 @@ public class HomeManager {
                     Location location = NBTUtil.getLocation(compound);
                     Home home = new Home(uuid, location);
                     home.setCreated(compound.getLong("Created"));
-                    if (compound.hasTag("LastTeleport")) home.setLastTeleport(compound.getLong("LastTeleport"));
-                    if (compound.hasTag("Icon")) home.setIcon(compound.getItemStack("Icon"));
-                    if (compound.hasTag("Name")) home.setName(compound.getString("Name"));
+                    if (compound.hasTag("LastTeleport"))
+                        home.setLastTeleport(compound.getLong("LastTeleport"));
+                    if (compound.hasTag("Icon"))
+                        home.setIcon(compound.getItemStack("Icon"));
+                    if (compound.hasTag("Name"))
+                        home.setName(compound.getString("Name"));
                     homeList.add(home);
                 });
                 loadedHomes.put(uuid, homeList);
@@ -86,10 +89,12 @@ public class HomeManager {
         for (int i = 0; i < compoundList.size(); i++) {
             NBTListCompound current = compoundList.get(i);
             // check for existing home to update
-            if (home.getCreated() == current.getLong("Created")) compound = current;
+            if (home.getCreated() == current.getLong("Created"))
+                compound = current;
         }
         // add new home to the list
-        if (compound == null) compound = nbtFile.getCompoundList("Homes").addCompound();
+        if (compound == null)
+            compound = nbtFile.getCompoundList("Homes").addCompound();
 
         compound.setLong("Created", home.getCreated());
         Location location = home.getLocation();
@@ -104,14 +109,18 @@ public class HomeManager {
         rotation.add(location.getYaw());
         rotation.add(location.getPitch());
 
-        if (home.getName() != null) compound.setString("Name", home.getName());
-        if (home.getIcon() != null) compound.setItemStack("Icon", home.getIcon());
-        if (home.getLastTeleport() != -1) compound.setLong("LastTeleport", home.getLastTeleport());
+        if (home.getName() != null)
+            compound.setString("Name", home.getName());
+        if (home.getIcon() != null)
+            compound.setItemStack("Icon", home.getIcon());
+        if (home.getLastTeleport() != -1)
+            compound.setLong("LastTeleport", home.getLastTeleport());
 
         try {
             nbtFile.save();
         } catch (IOException e) {
-            plugin.getLogger().severe("An error occurred while saving home of "+Bukkit.getOfflinePlayer(uuid).getName()+" ("+uuid+")");
+            plugin.getLogger().severe("An error occurred while saving home of "
+                    + Bukkit.getOfflinePlayer(uuid).getName() + " (" + uuid + ")");
             e.printStackTrace();
         }
     }
@@ -120,38 +129,47 @@ public class HomeManager {
         long start = System.currentTimeMillis();
         int saved = 0;
         int removedFromCache = 0;
-        //plugin.getLogger().info("Saving homes...");
+        // plugin.getLogger().info("Saving homes...");
         Iterator<Map.Entry<UUID, List<Home>>> iterator = loadedHomes.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, List<Home>> entry = iterator.next();
             entry.getValue().forEach(this::saveHome);
             saved += entry.getValue().size();
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(entry.getKey());
-            if (offlinePlayer.isOnline()) continue;
+            if (offlinePlayer.isOnline())
+                continue;
             iterator.remove();
             removedFromCache++;
         }
-        /*plugin.getLogger().info("Saved " + saved + " homes in " + (System.currentTimeMillis()-start)
-                + "ms (removed " + removedFromCache + " players from cache)");*/
+        /*
+         * plugin.getLogger().info("Saved " + saved + " homes in " +
+         * (System.currentTimeMillis()-start)
+         * + "ms (removed " + removedFromCache + " players from cache)");
+         */
     }
 
     @Nullable
     public NBTFile getNBTFile(UUID uuid) {
         NBTFile nbtFile = null;
         try {
-            File file = new File(plugin.HOMES_FOLDER, uuid.toString()+".nbt");
+            File file = new File(plugin.HOMES_FOLDER, uuid.toString() + ".nbt");
             nbtFile = new NBTFile(file);
         } catch (IOException e) {
-            plugin.getLogger().severe("An error occurred while loading homes of "+Bukkit.getOfflinePlayer(uuid).getName()+" ("+uuid+")");
+            plugin.getLogger().severe("An error occurred while loading homes of "
+                    + Bukkit.getOfflinePlayer(uuid).getName() + " (" + uuid + ")");
             e.printStackTrace();
         }
         return nbtFile;
     }
 
     public int getHomeLimit(UUID uuid) {
-        if      (MainConfig.isLpHomeLimit())   return PermUtil.getMetaLimit(MainConfig.getLpHomeLimitName(), plugin.getLuckPerms().getUserManager().getUser(uuid));
-        else if (MainConfig.isSumHomeLimits()) return PermUtil.getSummedLimit(MainConfig.getHomeLimitPermission(), Bukkit.getEntity(uuid));
-        else                                   return PermUtil.getHighestLimit(MainConfig.getHomeLimitPermission(), Bukkit.getEntity(uuid));
+        if (MainConfig.isLpHomeLimit())
+            return PermUtil.getMetaLimit(MainConfig.getLpHomeLimitName(),
+                    plugin.getLuckPerms().getUserManager().getUser(uuid));
+        else if (MainConfig.isSumHomeLimits())
+            return PermUtil.getSummedLimit(MainConfig.getHomeLimitPermission(), Bukkit.getEntity(uuid));
+        else
+            return PermUtil.getHighestLimit(MainConfig.getHomeLimitPermission(), Bukkit.getEntity(uuid));
     }
 
     public int getHomeTeleportTime(UUID uuid) {
@@ -159,16 +177,20 @@ public class HomeManager {
     }
 
     public int getHomeTeleportTime(Permissible permissible) {
-        if (permissible.hasPermission(MainConfig.getHomeTeleportTimePerm()+"bypass")) return 0;
-        int lowest = 60; //default 3 seconds
+        if (permissible.hasPermission(MainConfig.getHomeTeleportTimePerm() + "bypass"))
+            return 0;
+        int lowest = 60; // default 3 seconds
         for (PermissionAttachmentInfo permInfo : permissible.getEffectivePermissions()) {
             String perm = permInfo.getPermission();
-            if (!perm.startsWith(MainConfig.getHomeTeleportTimePerm())) continue;
+            if (!perm.startsWith(MainConfig.getHomeTeleportTimePerm()))
+                continue;
             String substr = perm.substring(MainConfig.getHomeTeleportTimePerm().length());
             try {
                 int number = Integer.parseInt(substr);
-                if (number < lowest) lowest = number;
-            } catch (NumberFormatException ignore) {}
+                if (number < lowest)
+                    lowest = number;
+            } catch (NumberFormatException ignore) {
+            }
         }
         return lowest;
     }
@@ -181,7 +203,8 @@ public class HomeManager {
     }
 
     public void teleport(Entity entity, Home home) {
-        if (entity.getWorld() != home.getLocation().getWorld() && !entity.hasPermission(MainConfig.getTpBetweenWorldsPerm())) {
+        if (entity.getWorld() != home.getLocation().getWorld()
+                && !entity.hasPermission(MainConfig.getTpBetweenWorldsPerm())) {
             MessageUtil.send(entity, MainConfig.getMessage("teleport_between_worlds_permission"),
                     Placeholder.unparsed("permission", MainConfig.getTpBetweenWorldsPerm()));
             SoundUtil.play(entity, MainConfig.getSound("teleport_between_worlds_permission"));
@@ -201,8 +224,8 @@ public class HomeManager {
                 .ticks(getHomeTeleportTime(entity))
                 .onFinish(tt -> {
                     home.setLastTeleport(System.currentTimeMillis());
-                    entity.teleport(home.getLocation());
-                    //todo make unnamed homes seen in chat instead of ""
+                    entity.teleportAsync(home.getLocation());
+                    // todo make unnamed homes seen in chat instead of ""
                     MessageUtil.send(entity, MainConfig.getMessage("teleport"),
                             Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()));
                     SoundUtil.play(entity, MainConfig.getSound("teleport"));
@@ -222,20 +245,19 @@ public class HomeManager {
                     SoundUtil.play(entity, MainConfig.getSound("teleport_tick"));
                 })
                 .onStart(tt -> {
-                    int seconds = (int)Math.ceil(tt.getTicksTotal() / 20d);
+                    int seconds = (int) Math.ceil(tt.getTicksTotal() / 20d);
                     if (seconds > 0) {
                         MessageUtil.send(entity, MainConfig.getMessage("teleport_start"),
                                 Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()),
                                 Formatter.number("seconds", seconds));
                     }
                     SoundUtil.play(entity, MainConfig.getSound("teleport_start"));
-                })
-                ;
+                });
         plugin.getTeleportManager().start(timedTeleport);
     }
 
     public void relocate(Player player, Home home) {
-        //todo confirmation
+        // todo confirmation
         Location location = player.getLocation().clone();
         if (MainConfig.isSethomeClaimCheck()) {
             if (!UHomes.getInstance().getClaimManager().canEnter(player, location)) {
@@ -248,8 +270,8 @@ public class HomeManager {
     }
 
     public void delete(Player player, Home home) {
-        //todo confirmation
-        //todo logging
+        // todo confirmation
+        // todo logging
         UUID uuid = home.getOwner();
         if (loadedHomes.containsKey(uuid)) {
             List<Home> homes = loadedHomes.get(uuid);
@@ -264,7 +286,8 @@ public class HomeManager {
                 try {
                     nbtFile.save();
                 } catch (IOException e) {
-                    plugin.getLogger().severe("An error occurred while deleting home of "+Bukkit.getOfflinePlayer(uuid).getName()+" ("+uuid+")");
+                    plugin.getLogger().severe("An error occurred while deleting home of "
+                            + Bukkit.getOfflinePlayer(uuid).getName() + " (" + uuid + ")");
                     e.printStackTrace();
                 }
                 return;

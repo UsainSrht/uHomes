@@ -41,8 +41,11 @@ public class HomeCommand extends Command {
     public LiteralCommandNode<?> getCommodoreCommand() {
         return LiteralArgumentBuilder.literal(super.getName())
                 .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString()))
-                /*.then(RequiredArgumentBuilder.argument("player", StringArgumentType.word())
-                        .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString())))*/
+                /*
+                 * .then(RequiredArgumentBuilder.argument("player", StringArgumentType.word())
+                 * .then(RequiredArgumentBuilder.argument("home-name",
+                 * StringArgumentType.greedyString())))
+                 */
                 .build();
     }
 
@@ -51,21 +54,24 @@ public class HomeCommand extends Command {
         if (args.length == 1) {
             if (sender instanceof Player player) {
                 List<String> homeNames = new ArrayList<>();
-                CompletableFuture<List<Home>> homesFuture = UHomes.getInstance().getHomeManager().getHomes(player.getUniqueId());
+                CompletableFuture<List<Home>> homesFuture = UHomes.getInstance().getHomeManager()
+                        .getHomes(player.getUniqueId());
                 if (homesFuture.isDone())
                     try {
-                        //todo add unnamed homes to tab complete
+                        // todo add unnamed homes to tab complete
                         homesFuture.get().stream().map(Home::getName)
                                 .filter(Objects::nonNull)
                                 .forEach(homeNames::add);
-                    } catch (Exception ignore) {}
-                if (sender.hasPermission("uhomes.reload")) homeNames.add("reload");
+                    } catch (Exception ignore) {
+                    }
+                if (sender.hasPermission("uhomes.reload"))
+                    homeNames.add("reload");
                 return StringUtil.copyPartialMatches(args[0], homeNames, new ArrayList<>());
-            } else return ImmutableList.of("reload");
+            } else
+                return ImmutableList.of("reload");
         }
         return ImmutableList.of();
     }
-
 
     @Override
     public boolean execute(CommandSender sender, String command, String[] args) {
@@ -93,7 +99,8 @@ public class HomeCommand extends Command {
                                 return;
                             }
                         }
-                        MessageUtil.send(sender, MainConfig.getMessage("no_home_with_that_name"), Placeholder.unparsed("home_name", name));
+                        MessageUtil.send(sender, MainConfig.getMessage("no_home_with_that_name"),
+                                Placeholder.unparsed("home_name", name));
                         SoundUtil.play(sender, MainConfig.getSound("no_home_with_that_name"));
                     });
                 }
