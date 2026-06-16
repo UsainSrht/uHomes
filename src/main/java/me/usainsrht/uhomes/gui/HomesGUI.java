@@ -114,6 +114,11 @@ public class HomesGUI {
                 lore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, FALSE));
             }
             iconMeta.lore(lore);
+
+            if (defaultIcon.isSet("hide-tooltip")) {
+                iconMeta.setHideTooltip(defaultIcon.getBoolean("hide-tooltip"));
+            }
+
             icon.setItemMeta(iconMeta);
         } else {
             icon = ItemUtil.getItemFromYaml(defaultIcon, placeholders);

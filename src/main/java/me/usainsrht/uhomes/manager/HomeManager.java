@@ -29,15 +29,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HomeManager {
 
     private UHomes plugin;
-    private HashMap<UUID, List<Home>> loadedHomes;
+    private ConcurrentHashMap<UUID, List<Home>> loadedHomes;
 
     public HomeManager(UHomes plugin) {
         this.plugin = plugin;
-        this.loadedHomes = new HashMap<>();
+        this.loadedHomes = new ConcurrentHashMap<>();
     }
 
     public CompletableFuture<List<Home>> getHomes(UUID uuid) {
@@ -49,7 +50,7 @@ public class HomeManager {
             SchedulerUtil.runAsync(plugin, () -> {
                 NBTFile nbtFile = getNBTFile(uuid);
                 NBTCompoundList compoundList = nbtFile.getCompoundList("Homes");
-                List<Home> homeList = new ArrayList<>();
+                List<Home> homeList = Collections.synchronizedList(new ArrayList<>());
                 compoundList.forEach(compound -> {
                     Location location = NBTUtil.getLocation(compound);
                     Home home = new Home(uuid, location);
@@ -74,11 +75,15 @@ public class HomeManager {
         if (loadedHomes.containsKey(uuid)) {
             loadedHomes.get(uuid).add(home);
         } else {
-            List<Home> homeList = new ArrayList<>();
+            List<Home> homeList = Collections.synchronizedList(new ArrayList<>());
             homeList.add(home);
             loadedHomes.put(uuid, homeList);
         }
         saveHome(home);
+    }
+
+    public List<Home> getLoadedHomes(UUID uuid) {
+        return loadedHomes.get(uuid);
     }
 
     public void saveHome(Home home) {
@@ -163,20 +168,33 @@ public class HomeManager {
     }
 
     public int getHomeLimit(UUID uuid) {
-        if (MainConfig.isLpHomeLimit())
-            return PermUtil.getMetaLimit(MainConfig.getLpHomeLimitName(),
-                    plugin.getLuckPerms().getUserManager().getUser(uuid));
-        else if (MainConfig.isSumHomeLimits())
-            return PermUtil.getSummedLimit(MainConfig.getHomeLimitPermission(), Bukkit.getEntity(uuid));
-        else
-            return PermUtil.getHighestLimit(MainConfig.getHomeLimitPermission(), Bukkit.getEntity(uuid));
+        if (MainConfig.isLpHomeLimit()) {
+            if (plugin.getLuckPerms() != null) {
+                var user = plugin.getLuckPerms().getUserManager().getUser(uuid);
+                if (user != null) {
+                    return PermUtil.getMetaLimit(MainConfig.getLpHomeLimitName(), user);
+                }
+            }
+            return 0;
+        } else {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                if (MainConfig.isSumHomeLimits())
+                    return PermUtil.getSummedLimit(MainConfig.getHomeLimitPermission(), player);
+                else
+                    return PermUtil.getHighestLimit(MainConfig.getHomeLimitPermission(), player);
+            }
+            return 0;
+        }
     }
 
     public int getHomeTeleportTime(UUID uuid) {
-        return getHomeTeleportTime(Bukkit.getEntity(uuid));
+        return getHomeTeleportTime(Bukkit.getPlayer(uuid));
     }
 
     public int getHomeTeleportTime(Permissible permissible) {
+        if (permissible == null)
+            return 60;
         if (permissible.hasPermission(MainConfig.getHomeTeleportTimePerm() + "bypass"))
             return 0;
         int lowest = 60; // default 3 seconds

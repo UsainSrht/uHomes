@@ -101,6 +101,7 @@ gui:
     # use AIR to not fill the inventory
     material: BLACK_STAINED_GLASS_PANE
     name: " "
+    hide-tooltip: true
 
   # set amount of home icon itemstack to current index
   # this will override custom icons' itemstack amounts

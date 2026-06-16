@@ -64,6 +64,11 @@ public final class UHomes extends JavaPlugin {
             getLogger().info("LuckPerms not found, continuing without it.");
         }
 
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new me.usainsrht.uhomes.placeholder.UHomesPlaceholderExpansion(this).register();
+            getLogger().info("Hooked into PlaceholderAPI!");
+        }
+
         commodore = CommodoreProvider.getCommodore(this);
         registerCommands();
 

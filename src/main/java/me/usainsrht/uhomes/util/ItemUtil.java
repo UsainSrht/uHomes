@@ -61,6 +61,10 @@ public class ItemUtil {
             });
         }
 
+        if (config.isSet("hide-tooltip")) {
+            itemMeta.setHideTooltip(config.getBoolean("hide-tooltip"));
+        }
+
         //todo unbreakable, lether dye, skull, nbt, potion
 
         itemStack.setItemMeta(itemMeta);
