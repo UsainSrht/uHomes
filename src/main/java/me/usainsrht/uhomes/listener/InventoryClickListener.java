@@ -16,6 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class InventoryClickListener implements Listener {
 
@@ -75,7 +76,11 @@ public class InventoryClickListener implements Listener {
                 });
             } else if (nbt.hasTag("sethome")) {
                 player.closeInventory();
-                SetHomeCommand.setHome(player, player.getLocation(), null);
+                UUID ownerUuid = player.getUniqueId();
+                if (player.hasMetadata("HomesGUIOwner") && !player.getMetadata("HomesGUIOwner").isEmpty()) {
+                    ownerUuid = (UUID) player.getMetadata("HomesGUIOwner").get(0).value();
+                }
+                SetHomeCommand.setHome(player, ownerUuid, player.getLocation(), null);
             }
         });
     }

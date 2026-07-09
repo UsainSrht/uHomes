@@ -221,14 +221,17 @@ public class HomeManager {
     }
 
     public void teleport(Entity entity, Home home) {
+        boolean managingOthers = entity instanceof Player player
+                && MainConfig.isManagingOthersHomes(player, home.getOwner());
         if (entity.getWorld() != home.getLocation().getWorld()
-                && !entity.hasPermission(MainConfig.getTpBetweenWorldsPerm())) {
+                && !entity.hasPermission(MainConfig.getTpBetweenWorldsPerm())
+                && !managingOthers) {
             MessageUtil.send(entity, MainConfig.getMessage("teleport_between_worlds_permission"),
                     Placeholder.unparsed("permission", MainConfig.getTpBetweenWorldsPerm()));
             SoundUtil.play(entity, MainConfig.getSound("teleport_between_worlds_permission"));
             return;
         }
-        if (MainConfig.isTeleportClaimCheck() && entity instanceof Player player) {
+        if (MainConfig.isTeleportClaimCheck() && entity instanceof Player player && !managingOthers) {
             if (!plugin.getClaimManager().canEnter(player, home.getLocation())) {
                 MessageUtil.send(entity, MainConfig.getMessage("not_allowed_to_teleport"));
                 SoundUtil.play(entity, MainConfig.getSound("not_allowed_to_teleport"));
@@ -277,7 +280,15 @@ public class HomeManager {
     public void relocate(Player player, Home home) {
         // todo confirmation
         Location location = player.getLocation().clone();
-        if (MainConfig.isSethomeClaimCheck()) {
+        boolean managingOthers = MainConfig.isManagingOthersHomes(player, home.getOwner());
+        if (!managingOthers && location.getWorld() != null
+                && MainConfig.isWorldBlacklisted(location.getWorld().getName())) {
+            MessageUtil.send(player, MainConfig.getMessage("blacklisted_world"),
+                    Placeholder.parsed("world", MainConfig.getWorldName(location.getWorld().getName())));
+            SoundUtil.play(player, MainConfig.getSound("blacklisted_world"));
+            return;
+        }
+        if (MainConfig.isSethomeClaimCheck() && !managingOthers) {
             if (!UHomes.getInstance().getClaimManager().canEnter(player, location)) {
                 MessageUtil.send(player, MainConfig.getMessage("not_allowed_to_sethome"));
                 SoundUtil.play(player, MainConfig.getSound("not_allowed_to_sethome"));

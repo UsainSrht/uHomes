@@ -6,6 +6,7 @@ import me.usainsrht.uhomes.gui.HomeButtonAction;
 import me.usainsrht.uhomes.util.SoundUtil;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -53,8 +54,11 @@ public class MainConfig {
     private static HashMap<Integer, ConfigurationSection> setHomeGuiSlots;
 
     private static HashMap<String, String> worldNames;
+    private static Set<String> blacklistedWorlds;
 
     private static YamlCommand homeCommand;
+    private static String homeSeePermission;
+    private static String homesGuiTitleOthers;
     private static YamlCommand setHomeCommand;
     //todo delhome
 
@@ -127,6 +131,13 @@ public class MainConfig {
             //todo save component instead of string
         });
 
+        blacklistedWorlds = new HashSet<>();
+        for (String world : config.getStringList("blacklisted_worlds")) {
+            blacklistedWorlds.add(world.toLowerCase(Locale.ROOT));
+        }
+
+        homesGuiTitleOthers = config.getString("gui.title_others", "<yellow><bold><player>'s Homes");
+
         homeCommand = new YamlCommand(
                 config.getString("commands.home.name"),
                 config.getString("commands.home.description"),
@@ -135,6 +146,7 @@ public class MainConfig {
                 config.getString("commands.home.permission"),
                 config.getString("commands.home.permission_message"),
                 SoundUtil.getSounds(config.get("commands.home.permission_sounds")));
+        homeSeePermission = config.getString("commands.home.see_permission", "uhomes.home.see");
         setHomeCommand = new YamlCommand(
                 config.getString("commands.sethome.name"),
                 config.getString("commands.sethome.description"),
@@ -175,6 +187,22 @@ public class MainConfig {
 
     public static String getWorldName(String name) {
         return worldNames.getOrDefault(name, name);
+    }
+
+    public static boolean isWorldBlacklisted(String worldName) {
+        return blacklistedWorlds.contains(worldName.toLowerCase(Locale.ROOT));
+    }
+
+    public static String getHomeSeePermission() {
+        return homeSeePermission;
+    }
+
+    public static String getHomesGuiTitleOthers() {
+        return homesGuiTitleOthers;
+    }
+
+    public static boolean isManagingOthersHomes(Player player, UUID ownerUuid) {
+        return !player.getUniqueId().equals(ownerUuid) && player.hasPermission(homeSeePermission);
     }
 
     public static String getTpBetweenWorldsPerm() {

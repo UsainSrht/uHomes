@@ -24,6 +24,9 @@ messages:
   teleport_between_worlds_permission: "<red>You don't have <underlined><permission></underlined> permission!"
   not_allowed_to_teleport: "<red>You are not allowed to enter there!"
   not_allowed_to_sethome: "<red>You are not allowed to sethome here!"
+  blacklisted_world: "<red>You can't set a home in <#F78383><italic><world></italic><red>!"
+  player_not_found: "<red>Player <#F78383><italic><player></italic> <red>was not found!"
+  see_open: "<gray>Viewing homes of <#F78383><italic><player></italic><gray>."
 
 sounds:
   reload: entity.villager.yes
@@ -40,6 +43,11 @@ sounds:
   teleport_cancel: entity.ender_eye.death
   teleport_tick: ui.button.click
   teleport_between_worlds_permission: entity.villager.no
+  not_allowed_to_sethome: entity.villager.no
+  not_allowed_to_teleport: entity.villager.no
+  blacklisted_world: entity.villager.no
+  player_not_found: entity.villager.no
+  see_open: entity.experience_orb.pickup
 
 # permission to calculate home limit of a player
 # for example if player has a "home.limit.5" permission he/she
@@ -97,6 +105,7 @@ teleport_claim_check: true
 
 gui:
   title: "<yellow><bold>Homes"
+  title_others: "<yellow><bold><player>'s Homes"
   fill:
     # use AIR to not fill the inventory
     material: BLACK_STAINED_GLASS_PANE
@@ -170,6 +179,11 @@ input:
     home_name_not_valid: "<red>↓ Invalid Characters ↓ <#F78383><italic><invalid_characters>"
     home_name_limit: "<red>↓ Name length should be <#F78383><italic><min></italic><red>-<#F78383><italic><max></italic> <red>↓"
 
+# worlds where players cannot set or relocate homes
+blacklisted_worlds:
+  - world_nether
+  - world_the_end
+
 world_names:
   world: "<green>Overworld"
   world_nether: "<red>Nether"
@@ -179,8 +193,9 @@ commands:
   home:
     name: "home"
     description: "Base home command."
-    usage: "/home [<homeName>]"
+    usage: "/home [<homeName>] | /home see <player>"
     permission: "uhomes.home"
+    see_permission: "uhomes.home.see"
     permission_message: "<red>You don't have <underlined><permission></underlined> permission!"
     permission_sounds: entity.villager.no
     aliases:

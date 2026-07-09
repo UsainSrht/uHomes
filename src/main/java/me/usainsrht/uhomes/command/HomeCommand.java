@@ -1,117 +1,174 @@
 package me.usainsrht.uhomes.command;
 
-import com.google.common.collect.ImmutableList;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import me.usainsrht.uhomes.Home;
-import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.gui.HomesGUI;
+import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.util.MessageUtil;
+import me.usainsrht.uhomes.util.PlayerUtil;
+import me.usainsrht.uhomes.util.SchedulerUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.util.StringUtil;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class HomeCommand extends Command {
+public final class HomeCommand {
 
-    private String permission;
-    private String permissionMessage;
-    private Collection<Sound> permissionSounds;
-
-    public HomeCommand(YamlCommand cmd) {
-        super(cmd.getName(), cmd.getDescription(), cmd.getUsage(), cmd.getAliases());
-        this.permission = cmd.getPermission();
-        this.permissionMessage = cmd.getPermissionMessage();
-        this.permissionSounds = cmd.getPermissionSounds();
+    private HomeCommand() {
     }
 
-    public LiteralCommandNode<?> getCommodoreCommand() {
-        return LiteralArgumentBuilder.literal(super.getName())
-                .then(RequiredArgumentBuilder.argument("home-name", StringArgumentType.greedyString()))
-                /*
-                 * .then(RequiredArgumentBuilder.argument("player", StringArgumentType.word())
-                 * .then(RequiredArgumentBuilder.argument("home-name",
-                 * StringArgumentType.greedyString())))
-                 */
+    public static LiteralCommandNode<CommandSourceStack> buildNode(YamlCommand cmd) {
+        return Commands.literal(cmd.getName())
+                .executes(ctx -> openGui(ctx.getSource(), cmd))
+                .then(Commands.literal("reload")
+                        .requires(source -> source.getSender().hasPermission("uhomes.reload"))
+                        .executes(ctx -> reload(ctx.getSource())))
+                .then(Commands.literal("see")
+                        .requires(source -> source.getSender().hasPermission(MainConfig.getHomeSeePermission()))
+                        .then(Commands.argument("player", StringArgumentType.greedyString())
+                                .suggests((ctx, builder) -> {
+                                    Bukkit.getOnlinePlayers().stream()
+                                            .map(Player::getName)
+                                            .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
+                                            .forEach(builder::suggest);
+                                    return builder.buildFuture();
+                                })
+                                .executes(ctx -> seeOthersHomes(
+                                        ctx.getSource(),
+                                        cmd,
+                                        ctx.getArgument("player", String.class)))))
+                .then(Commands.argument("home-name", StringArgumentType.greedyString())
+                        .suggests((ctx, builder) -> {
+                            if (ctx.getSource().getExecutor() instanceof Player player) {
+                                CompletableFuture<List<Home>> homesFuture = UHomes.getInstance().getHomeManager()
+                                        .getHomes(player.getUniqueId());
+                                if (homesFuture.isDone()) {
+                                    try {
+                                        homesFuture.get().stream()
+                                                .map(Home::getName)
+                                                .filter(Objects::nonNull)
+                                                .filter(name -> name.toLowerCase().startsWith(builder.getRemainingLowerCase()))
+                                                .forEach(builder::suggest);
+                                    } catch (Exception ignore) {
+                                    }
+                                }
+                            }
+                            return builder.buildFuture();
+                        })
+                        .executes(ctx -> teleportToHome(
+                                ctx.getSource(),
+                                cmd,
+                                ctx.getArgument("home-name", String.class))))
                 .build();
     }
 
-    @Override
-    public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-        if (args.length == 1) {
-            if (sender instanceof Player player) {
-                List<String> homeNames = new ArrayList<>();
-                CompletableFuture<List<Home>> homesFuture = UHomes.getInstance().getHomeManager()
-                        .getHomes(player.getUniqueId());
-                if (homesFuture.isDone())
-                    try {
-                        // todo add unnamed homes to tab complete
-                        homesFuture.get().stream().map(Home::getName)
-                                .filter(Objects::nonNull)
-                                .forEach(homeNames::add);
-                    } catch (Exception ignore) {
-                    }
-                if (sender.hasPermission("uhomes.reload"))
-                    homeNames.add("reload");
-                return StringUtil.copyPartialMatches(args[0], homeNames, new ArrayList<>());
-            } else
-                return ImmutableList.of("reload");
+    private static int openGui(CommandSourceStack source, YamlCommand cmd) {
+        if (!checkPermission(source, cmd)) {
+            return 0;
         }
-        return ImmutableList.of();
+        if (!(source.getSender() instanceof Player player)) {
+            MessageUtil.send(source.getSender(), MainConfig.getMessage("player_only_command"));
+            return 0;
+        }
+        HomesGUI.open(player.getUniqueId(), player);
+        return Command.SINGLE_SUCCESS;
     }
 
-    @Override
-    public boolean execute(CommandSender sender, String command, String[] args) {
-        if (!sender.hasPermission(permission)) {
-            Component permMsg = MiniMessage.miniMessage().deserialize(permissionMessage,
-                    Placeholder.unparsed("permission", permission));
-            sender.sendMessage(permMsg);
-            SoundUtil.play(sender, permissionSounds);
-            return false;
-        }
-        if (args.length > 0) {
-            if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("uhomes.reload")) {
-                UHomes.getInstance().reload();
-                MessageUtil.send(sender, MainConfig.getMessage("reload"));
-                SoundUtil.play(sender, MainConfig.getSound("reload"));
-            } else {
-                if (sender instanceof Player player) {
-                    String name = String.join(" ", args);
-                    HomeManager homeManager = UHomes.getInstance().getHomeManager();
-                    CompletableFuture<List<Home>> homesFuture = homeManager.getHomes(player.getUniqueId());
-                    homesFuture.thenAccept(homes -> {
-                        for (Home home : homes) {
-                            if (home.getName() != null && home.getName().equalsIgnoreCase(name)) {
-                                homeManager.teleport(player, home);
-                                return;
-                            }
-                        }
-                        MessageUtil.send(sender, MainConfig.getMessage("no_home_with_that_name"),
-                                Placeholder.unparsed("home_name", name));
-                        SoundUtil.play(sender, MainConfig.getSound("no_home_with_that_name"));
-                    });
-                }
+    private static int reload(CommandSourceStack source) {
+        CommandSender sender = source.getSender();
+        UHomes.getInstance().reload();
+        MessageUtil.send(sender, MainConfig.getMessage("reload"));
+        SoundUtil.play(sender, MainConfig.getSound("reload"));
+        return Command.SINGLE_SUCCESS;
+    }
 
-            }
-        } else {
-            if (sender instanceof Player player) {
-                HomesGUI.open(player.getUniqueId(), player);
-            }
+    private static int seeOthersHomes(CommandSourceStack source, YamlCommand cmd, String targetName) {
+        if (!checkPermission(source, cmd)) {
+            return 0;
         }
-        return true;
+        if (!(source.getSender() instanceof Player player)) {
+            MessageUtil.send(source.getSender(), MainConfig.getMessage("player_only_command"));
+            return 0;
+        }
+        if (!source.getSender().hasPermission(MainConfig.getHomeSeePermission())) {
+            denyPermission(source, cmd.getPermissionMessage(), MainConfig.getHomeSeePermission(), cmd.getPermissionSounds());
+            return 0;
+        }
+        seeOthersHomes(player, targetName);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int teleportToHome(CommandSourceStack source, YamlCommand cmd, String name) {
+        if (!checkPermission(source, cmd)) {
+            return 0;
+        }
+        if (!(source.getSender() instanceof Player player)) {
+            MessageUtil.send(source.getSender(), MainConfig.getMessage("player_only_command"));
+            return 0;
+        }
+        HomeManager homeManager = UHomes.getInstance().getHomeManager();
+        CompletableFuture<List<Home>> homesFuture = homeManager.getHomes(player.getUniqueId());
+        homesFuture.thenAccept(homes -> {
+            for (Home home : homes) {
+                if (home.getName() != null && home.getName().equalsIgnoreCase(name)) {
+                    homeManager.teleport(player, home);
+                    return;
+                }
+            }
+            MessageUtil.send(source.getSender(), MainConfig.getMessage("no_home_with_that_name"),
+                    Placeholder.unparsed("home_name", name));
+            SoundUtil.play(source.getSender(), MainConfig.getSound("no_home_with_that_name"));
+        });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static boolean checkPermission(CommandSourceStack source, YamlCommand cmd) {
+        if (source.getSender().hasPermission(cmd.getPermission())) {
+            return true;
+        }
+        denyPermission(source, cmd.getPermissionMessage(), cmd.getPermission(), cmd.getPermissionSounds());
+        return false;
+    }
+
+    private static void denyPermission(CommandSourceStack source, String permissionMessage, String permission,
+                                       java.util.Collection<net.kyori.adventure.sound.Sound> permissionSounds) {
+        Component permMsg = MiniMessage.miniMessage().deserialize(permissionMessage,
+                Placeholder.unparsed("permission", permission));
+        source.getSender().sendMessage(permMsg);
+        SoundUtil.play(source.getSender(), permissionSounds);
+    }
+
+    private static void seeOthersHomes(Player player, String targetName) {
+        SchedulerUtil.runAsync(UHomes.getInstance(), () -> {
+            UUID targetUuid = PlayerUtil.resolvePlayerUuid(targetName);
+            String resolvedName = targetUuid != null ? PlayerUtil.getPlayerName(targetUuid) : null;
+            SchedulerUtil.runNextTick(UHomes.getInstance(), () -> {
+                if (targetUuid == null || resolvedName == null) {
+                    MessageUtil.send(player, MainConfig.getMessage("player_not_found"),
+                            Placeholder.unparsed("player", targetName));
+                    SoundUtil.play(player, MainConfig.getSound("player_not_found"));
+                    return;
+                }
+                MessageUtil.send(player, MainConfig.getMessage("see_open"),
+                        Placeholder.unparsed("player", resolvedName));
+                SoundUtil.play(player, MainConfig.getSound("see_open"));
+                HomesGUI.open(targetUuid, player);
+            });
+        });
     }
 
 }

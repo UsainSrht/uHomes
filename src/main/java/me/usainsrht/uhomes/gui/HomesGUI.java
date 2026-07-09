@@ -9,6 +9,7 @@ import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.util.InventoryUtil;
 import me.usainsrht.uhomes.util.ItemUtil;
 import me.usainsrht.uhomes.util.MMUtil;
+import me.usainsrht.uhomes.util.PlayerUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
@@ -37,26 +38,51 @@ import static net.kyori.adventure.text.format.TextDecoration.State.FALSE;
 public class HomesGUI {
 
     public static void open(UUID uuid, Player player) {
-        Component title = MiniMessage.miniMessage().deserialize(MainConfig.getHomesGuiTitle());
+        boolean viewingOthers = !uuid.equals(player.getUniqueId());
+        String titleString = viewingOthers
+                ? MainConfig.getHomesGuiTitleOthers()
+                : MainConfig.getHomesGuiTitle();
+        if (viewingOthers) {
+            String ownerName = PlayerUtil.getPlayerName(uuid);
+            if (ownerName != null) {
+                titleString = titleString.replace("<player>", ownerName);
+            }
+        }
+        Component title = MiniMessage.miniMessage().deserialize(titleString);
         Inventory inventory = Bukkit.createInventory(null, 3*9, title);
 
         InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
 
         player.openInventory(inventory);
         player.setMetadata("HomesGUI", new FixedMetadataValue(UHomes.getInstance(), inventory));
+        player.setMetadata("HomesGUIOwner", new FixedMetadataValue(UHomes.getInstance(), uuid));
 
         HomeManager homeManager = UHomes.getInstance().getHomeManager();
         CompletableFuture<List<Home>> future = homeManager.getHomes(uuid);
         future.thenAccept(homes -> {
             //             maximum 4 rows of homes // get 1 even if 0 homes
             int rows = 2 + Math.min(Math.max((int)Math.ceil(homes.size() / 7f), 1), 4);
-            open(player, homes, rows*9, homeManager.getHomeLimit(uuid));
+            open(player, uuid, homes, rows*9, homeManager.getHomeLimit(uuid));
         });
 
     }
 
     public static void open(Player player, List<Home> homes, int size, int maxHomes) {
-        Component title = MiniMessage.miniMessage().deserialize(MainConfig.getHomesGuiTitle());
+        open(player, player.getUniqueId(), homes, size, maxHomes);
+    }
+
+    public static void open(Player player, UUID ownerUuid, List<Home> homes, int size, int maxHomes) {
+        boolean viewingOthers = !ownerUuid.equals(player.getUniqueId());
+        String titleString = viewingOthers
+                ? MainConfig.getHomesGuiTitleOthers()
+                : MainConfig.getHomesGuiTitle();
+        if (viewingOthers) {
+            String ownerName = PlayerUtil.getPlayerName(ownerUuid);
+            if (ownerName != null) {
+                titleString = titleString.replace("<player>", ownerName);
+            }
+        }
+        Component title = MiniMessage.miniMessage().deserialize(titleString);
         Inventory inventory = Bukkit.createInventory(null, size, title);
 
         InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
@@ -81,6 +107,7 @@ public class HomesGUI {
         }
         player.openInventory(inventory);
         player.setMetadata("HomesGUI", new FixedMetadataValue(UHomes.getInstance(), inventory));
+        player.setMetadata("HomesGUIOwner", new FixedMetadataValue(UHomes.getInstance(), ownerUuid));
     }
 
     public static int getSlot(int index) {

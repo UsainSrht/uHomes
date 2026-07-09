@@ -1,20 +1,20 @@
 package me.usainsrht.uhomes;
 
+import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import me.angeschossen.lands.api.LandsIntegration;
-import me.lucko.commodore.Commodore;
-import me.lucko.commodore.CommodoreProvider;
-import me.usainsrht.uhomes.protected_area_interfaces.ProtectedAreaAPI;
-import me.usainsrht.uhomes.protected_area_interfaces.GriefPrevention;
-import me.usainsrht.uhomes.protected_area_interfaces.Lands;
-import me.usainsrht.uhomes.command.CommandHandler;
 import me.usainsrht.uhomes.command.HomeCommand;
 import me.usainsrht.uhomes.command.SetHomeCommand;
+import me.usainsrht.uhomes.command.YamlCommand;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.listener.InventoryClickListener;
 import me.usainsrht.uhomes.listener.JoinListener;
 import me.usainsrht.uhomes.listener.SaveListener;
 import me.usainsrht.uhomes.manager.ProtectedAreManager;
 import me.usainsrht.uhomes.manager.HomeManager;
+import me.usainsrht.uhomes.protected_area_interfaces.ProtectedAreaAPI;
+import me.usainsrht.uhomes.protected_area_interfaces.GriefPrevention;
+import me.usainsrht.uhomes.protected_area_interfaces.Lands;
 import me.usainsrht.uhomes.teleport.TeleportManager;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -35,7 +35,6 @@ public final class UHomes extends JavaPlugin {
     private HomeManager homeManager;
     private ProtectedAreManager protectedAreManager;
     private TeleportManager teleportManager;
-    private Commodore commodore;
     private LuckPerms luckPerms;
     public File HOMES_FOLDER;
 
@@ -69,7 +68,6 @@ public final class UHomes extends JavaPlugin {
             getLogger().info("Hooked into PlaceholderAPI!");
         }
 
-        commodore = CommodoreProvider.getCommodore(this);
         registerCommands();
 
         registerListeners();
@@ -99,13 +97,23 @@ public final class UHomes extends JavaPlugin {
     }
 
     public void registerCommands() {
-        HomeCommand homeCommand = new HomeCommand(MainConfig.getHomeCommand());
-        CommandHandler.register("uhomes", homeCommand);
-        commodore.register(homeCommand, homeCommand.getCommodoreCommand());
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            Commands registrar = event.registrar();
 
-        SetHomeCommand setHomeCommand = new SetHomeCommand(MainConfig.getSetHomeCommand());
-        CommandHandler.register("uhomes", setHomeCommand);
-        commodore.register(setHomeCommand, setHomeCommand.getCommodoreCommand());
+            YamlCommand homeCmd = MainConfig.getHomeCommand();
+            registrar.register(
+                    HomeCommand.buildNode(homeCmd),
+                    homeCmd.getDescription(),
+                    homeCmd.getAliases()
+            );
+
+            YamlCommand setHomeCmd = MainConfig.getSetHomeCommand();
+            registrar.register(
+                    SetHomeCommand.buildNode(setHomeCmd),
+                    setHomeCmd.getDescription(),
+                    setHomeCmd.getAliases()
+            );
+        });
     }
 
     public void registerListeners() {
