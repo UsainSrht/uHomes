@@ -9,7 +9,9 @@ import me.usainsrht.uhomes.Home;
 import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.gui.HomesGUI;
+import me.usainsrht.uhomes.gui.HomesGUI;
 import me.usainsrht.uhomes.manager.HomeManager;
+import me.usainsrht.uhomes.util.ConsoleLogUtil;
 import me.usainsrht.uhomes.util.DialogImpl;
 import me.usainsrht.uhomes.util.DialogUtil;
 import me.usainsrht.uhomes.util.ItemUtil;
@@ -17,11 +19,11 @@ import me.usainsrht.uhomes.util.MMUtil;
 import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
@@ -48,15 +50,19 @@ public final class SetHomeCommand {
     }
 
     private static int execute(CommandSourceStack source, YamlCommand cmd, @Nullable String name) {
-        if (!source.getSender().hasPermission(cmd.getPermission())) {
-            Component permMsg = MiniMessage.miniMessage().deserialize(cmd.getPermissionMessage(),
-                    Placeholder.unparsed("permission", cmd.getPermission()));
-            source.getSender().sendMessage(permMsg);
-            SoundUtil.play(source.getSender(), cmd.getPermissionSounds());
+        CommandSender sender = source.getSender();
+        if (!sender.hasPermission(cmd.getPermission())) {
+            Component permMsg = sender instanceof Player player
+                    ? MMUtil.deserialize(player, cmd.getPermissionMessage(),
+                            Placeholder.unparsed("permission", cmd.getPermission()))
+                    : MMUtil.deserialize(cmd.getPermissionMessage(),
+                            Placeholder.unparsed("permission", cmd.getPermission()));
+            sender.sendMessage(permMsg);
+            SoundUtil.play(sender, cmd.getPermissionSounds());
             return 0;
         }
-        if (!(source.getSender() instanceof Player player)) {
-            MessageUtil.send(source.getSender(), MainConfig.getMessage("player_only_command"));
+        if (!(sender instanceof Player player)) {
+            MessageUtil.send(sender, MainConfig.getMessage("player_only_command"));
             return 0;
         }
         Location location = player.getLocation().clone();
@@ -74,14 +80,14 @@ public final class SetHomeCommand {
         boolean managingOthers = MainConfig.isManagingOthersHomes(player, targetUuid);
         if (managingOthers) {
             if (!player.hasPermission(MainConfig.getHomeSeePermission())) {
-                Component permMsg = MiniMessage.miniMessage().deserialize(cmd.getPermissionMessage(),
+                Component permMsg = MMUtil.deserialize(player, cmd.getPermissionMessage(),
                         Placeholder.unparsed("permission", MainConfig.getHomeSeePermission()));
                 player.sendMessage(permMsg);
                 SoundUtil.play(player, cmd.getPermissionSounds());
                 return;
             }
         } else if (!player.hasPermission(cmd.getPermission())) {
-            Component permMsg = MiniMessage.miniMessage().deserialize(cmd.getPermissionMessage(),
+            Component permMsg = MMUtil.deserialize(player, cmd.getPermissionMessage(),
                     Placeholder.unparsed("permission", cmd.getPermission()));
             player.sendMessage(permMsg);
             SoundUtil.play(player, cmd.getPermissionSounds());
@@ -121,15 +127,19 @@ public final class SetHomeCommand {
             }
             registerHome(player, targetUuid, location, name, managingOthers);
         } else if (MainConfig.isAskForNameBeforeSave()) {
-            renameHome(player, null, location, targetUuid, managingOthers);
+            renameHome(player, null, location, targetUuid, managingOthers, -1);
         } else {
             registerHome(player, targetUuid, location, null, managingOthers);
         }
     }
 
     public static void renameHome(Player player, @Nullable Home home, @Nullable Location location) {
+        renameHome(player, home, location, -1);
+    }
+
+    public static void renameHome(Player player, @Nullable Home home, @Nullable Location location, int index) {
         UUID targetUuid = home != null ? home.getOwner() : player.getUniqueId();
-        renameHome(player, home, location, targetUuid, MainConfig.isManagingOthersHomes(player, targetUuid));
+        renameHome(player, home, location, targetUuid, MainConfig.isManagingOthersHomes(player, targetUuid), index);
     }
 
     /*
@@ -137,14 +147,15 @@ public final class SetHomeCommand {
     * pass location null to rename home
     * */
     public static void renameHome(Player player, @Nullable Home home, @Nullable Location location,
-                                  UUID targetUuid, boolean managingOthers) {
+                                  UUID targetUuid, boolean managingOthers, int index) {
         if (MainConfig.isDialogEnabled() && DialogUtil.isSupported()) {
-            DialogImpl.sendHomeForm(player, home, location, (name) -> {
+            DialogImpl.sendHomeForm(player, home, location, index, (name) -> {
                 if (home == null) {
                     registerHome(player, targetUuid, location, name, managingOthers);
                     HomesGUI.open(targetUuid, player);
                 }
                 else {
+                    ConsoleLogUtil.logHomeRenamed(player, name);
                     home.setName(name);
                     HomesGUI.open(home.getOwner(), player);
                 }
@@ -163,15 +174,22 @@ public final class SetHomeCommand {
 
         MainConfig.getSetHomeGuiSlots().forEach((slot, item) -> {
             if (slot == 0) {
-                if (home == null) item.set("name", MainConfig.getSetHomeGuiText());
-                else if (home.getName() != null) item.set("name", home.getName());
-                builder.itemLeft(ItemUtil.getItemFromYaml(item));
+                if (home != null && index >= 0) {
+                    builder.itemLeft(HomesGUI.getAnvilLeftItem(home, index, null));
+                } else {
+                    if (home == null) item.set("name", MainConfig.getSetHomeGuiText());
+                    else if (home.getName() != null) item.set("name", home.getName());
+                    builder.itemLeft(ItemUtil.getItemFromYaml(item));
+                }
             }
             else if (slot == 1) builder.itemRight(ItemUtil.getItemFromYaml(item));
             else if (slot == 2) builder.itemOutput(ItemUtil.getItemFromYaml(item));
         });
 
         builder.onClick((slot, stateSnapshot) -> {
+            if (slot == AnvilGUI.Slot.INPUT_RIGHT) {
+                return Collections.singletonList(AnvilGUI.ResponseAction.close());
+            }
             if (slot != AnvilGUI.Slot.OUTPUT) {
                 return Collections.emptyList();
             }
@@ -206,6 +224,7 @@ public final class SetHomeCommand {
                             HomesGUI.open(targetUuid, player);
                         }
                         else {
+                            ConsoleLogUtil.logHomeRenamed(player, name);
                             home.setName(name);
                             HomesGUI.open(home.getOwner(), player);
                         }
@@ -238,6 +257,7 @@ public final class SetHomeCommand {
             Home home = new Home(targetUuid, location);
             if (name != null) home.setName(name);
             homeManager.addHome(targetUuid, home);
+            ConsoleLogUtil.logHomeCreated(player, home);
             MessageUtil.send(player, MainConfig.getMessage("sethome"), Placeholder.unparsed("home_name", name == null ? "" : name));
             SoundUtil.play(player, MainConfig.getSound("sethome"));
         });

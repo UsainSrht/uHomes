@@ -6,7 +6,7 @@
 
     <groupId>me.usainsrht</groupId>
     <artifactId>uHomes</artifactId>
-    <version>1.9.1</version>
+    <version>2.0.0</version>
     <packaging>jar</packaging>
 
     <name>uHomes</name>
@@ -56,6 +56,10 @@
                             <pattern>net.wesjd.anvilgui</pattern>
                             <shadedPattern>me.usainsrht.uhomes.anvilgui</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>me.usainsrht.limitapi</pattern>
+                            <shadedPattern>me.usainsrht.uhomes.limitapi</shadedPattern>
+                        </relocation>
                     </relocations>
                     <filters>
                         <filter>
@@ -63,6 +67,7 @@
                             <excludeDefaults>false</excludeDefaults>
                             <includes>
                                 <include>net/wesjd/anvilgui/**</include>
+                                <include>me/usainsrht/limitapi/**</include>
                             </includes>
                         </filter>
                     </filters>
@@ -185,6 +190,17 @@
             <groupId>net.luckperms</groupId>
             <artifactId>api</artifactId>
             <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.usainsrht.limitapi</groupId>
+            <artifactId>limitapi-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.miniplaceholders</groupId>
+            <artifactId>miniplaceholders-api</artifactId>
+            <version>3.2.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

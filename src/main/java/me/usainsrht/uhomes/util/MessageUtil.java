@@ -1,9 +1,9 @@
 package me.usainsrht.uhomes.util;
 
 import me.usainsrht.uhomes.config.MainConfig;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.Collection;
 
@@ -13,7 +13,11 @@ public class MessageUtil {
         messages.forEach(message -> {
             if (message.isEmpty()) return;
             if (!MainConfig.getPrefix().isEmpty()) message = MainConfig.getPrefix() + " " + message;
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(message, placeholders));
+            if (sender instanceof Player player) {
+                sender.sendMessage(MMUtil.deserialize(player, message, placeholders));
+            } else {
+                sender.sendMessage(MMUtil.deserialize(message, placeholders));
+            }
         });
     }
 

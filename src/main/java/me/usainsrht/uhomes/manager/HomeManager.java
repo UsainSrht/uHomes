@@ -9,9 +9,13 @@ import me.usainsrht.uhomes.UHomes;
 import me.usainsrht.uhomes.command.SetHomeCommand;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.teleport.TimedTeleport;
+import me.usainsrht.uhomes.gui.HomeSort;
+import me.usainsrht.uhomes.gui.HomesGUI;
+import me.usainsrht.uhomes.util.ConfirmationInput;
+import me.usainsrht.uhomes.util.ConsoleLogUtil;
 import me.usainsrht.uhomes.util.MessageUtil;
 import me.usainsrht.uhomes.util.NBTUtil;
-import me.usainsrht.uhomes.util.PermUtil;
+import me.usainsrht.limitapi.api.PermUtil;
 import me.usainsrht.uhomes.util.SoundUtil;
 import me.usainsrht.uhomes.util.SchedulerUtil;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
@@ -21,8 +25,6 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permissible;
-import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -45,7 +47,7 @@ public class HomeManager {
         CompletableFuture<List<Home>> future = new CompletableFuture<>();
 
         if (loadedHomes.containsKey(uuid)) {
-            future.complete(loadedHomes.get(uuid));
+            future.complete(sortHomes(loadedHomes.get(uuid)));
         } else {
             SchedulerUtil.runAsync(plugin, () -> {
                 NBTFile nbtFile = getNBTFile(uuid);
@@ -61,10 +63,12 @@ public class HomeManager {
                         home.setIcon(compound.getItemStack("Icon"));
                     if (compound.hasTag("Name"))
                         home.setName(compound.getString("Name"));
+                    if (compound.hasTag("Priority"))
+                        home.setPriority(compound.getInteger("Priority"));
                     homeList.add(home);
                 });
                 loadedHomes.put(uuid, homeList);
-                future.complete(homeList);
+                future.complete(sortHomes(homeList));
             });
         }
 
@@ -120,6 +124,8 @@ public class HomeManager {
             compound.setItemStack("Icon", home.getIcon());
         if (home.getLastTeleport() != -1)
             compound.setLong("LastTeleport", home.getLastTeleport());
+        if (home.getPriority() != 0)
+            compound.setInteger("Priority", home.getPriority());
 
         try {
             nbtFile.save();
@@ -169,48 +175,40 @@ public class HomeManager {
 
     public int getHomeLimit(UUID uuid) {
         if (MainConfig.isLpHomeLimit()) {
-            if (plugin.getLuckPerms() != null) {
-                var user = plugin.getLuckPerms().getUserManager().getUser(uuid);
+            var lp = PermUtil.getLuckPerms();
+            if (lp != null) {
+                var user = lp.getUserManager().getUser(uuid);
                 if (user != null) {
-                    return PermUtil.getMetaLimit(MainConfig.getLpHomeLimitName(), user);
+                    return PermUtil.LuckPerms.getMetaLimit(MainConfig.getLpHomeLimitName(), user);
                 }
             }
             return 0;
-        } else {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player != null) {
-                if (MainConfig.isSumHomeLimits())
-                    return PermUtil.getSummedLimit(MainConfig.getHomeLimitPermission(), player);
-                else
-                    return PermUtil.getHighestLimit(MainConfig.getHomeLimitPermission(), player);
-            }
-            return 0;
         }
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null) {
+            if (MainConfig.isSumHomeLimits()) {
+                return PermUtil.Bukkit.getSummedLimit(MainConfig.getHomeLimitPermission(), player);
+            }
+            return PermUtil.Bukkit.getHighestLimit(MainConfig.getHomeLimitPermission(), player);
+        }
+        return 0;
     }
 
     public int getHomeTeleportTime(UUID uuid) {
-        return getHomeTeleportTime(Bukkit.getPlayer(uuid));
-    }
-
-    public int getHomeTeleportTime(Permissible permissible) {
-        if (permissible == null)
-            return 60;
-        if (permissible.hasPermission(MainConfig.getHomeTeleportTimePerm() + "bypass"))
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null && player.hasPermission(MainConfig.getHomeTeleportTimeBypassPerm())) {
             return 0;
-        int lowest = 60; // default 3 seconds
-        for (PermissionAttachmentInfo permInfo : permissible.getEffectivePermissions()) {
-            String perm = permInfo.getPermission();
-            if (!perm.startsWith(MainConfig.getHomeTeleportTimePerm()))
-                continue;
-            String substr = perm.substring(MainConfig.getHomeTeleportTimePerm().length());
-            try {
-                int number = Integer.parseInt(substr);
-                if (number < lowest)
-                    lowest = number;
-            } catch (NumberFormatException ignore) {
+        }
+
+        var lp = PermUtil.getLuckPerms();
+        if (lp != null) {
+            var user = lp.getUserManager().getUser(uuid);
+            if (user != null) {
+                int meta = PermUtil.LuckPerms.getMetaLimit(MainConfig.getHomeTeleportTimePerm(), user);
+                return meta > 0 ? meta : 60;
             }
         }
-        return lowest;
+        return 60;
     }
 
     public CompletableFuture<Boolean> canRegisterHome(UUID uuid) {
@@ -242,10 +240,11 @@ public class HomeManager {
                 .entity(entity)
                 .location(home.getLocation())
                 .ticksToRunOnTick(20)
-                .ticks(getHomeTeleportTime(entity))
+                .ticks(getHomeTeleportTime(entity.getUniqueId()))
                 .onFinish(tt -> {
                     home.setLastTeleport(System.currentTimeMillis());
                     entity.teleportAsync(home.getLocation());
+                    ConsoleLogUtil.logHomeTeleport(entity, home);
                     // todo make unnamed homes seen in chat instead of ""
                     MessageUtil.send(entity, MainConfig.getMessage("teleport"),
                             Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()));
@@ -277,8 +276,15 @@ public class HomeManager {
         plugin.getTeleportManager().start(timedTeleport);
     }
 
-    public void relocate(Player player, Home home) {
-        // todo confirmation
+    public void relocate(Player player, Home home, int index) {
+        ConfirmationInput.open(player, ConfirmationInput.Type.RELOCATE, home, index, () -> {
+            performRelocate(player, home);
+            HomesGUI.open(home.getOwner(), player);
+        });
+    }
+
+    private void performRelocate(Player player, Home home) {
+        Location oldLocation = home.getLocation();
         Location location = player.getLocation().clone();
         boolean managingOthers = MainConfig.isManagingOthersHomes(player, home.getOwner());
         if (!managingOthers && location.getWorld() != null
@@ -296,11 +302,21 @@ public class HomeManager {
             }
         }
         home.setLocation(location);
+        saveHome(home);
+        ConsoleLogUtil.logHomeRelocated(player, home, oldLocation);
+        MessageUtil.send(player, MainConfig.getMessage("relocatehome"),
+                Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()));
+        SoundUtil.play(player, MainConfig.getSound("relocatehome"));
     }
 
-    public void delete(Player player, Home home) {
-        // todo confirmation
-        // todo logging
+    public void delete(Player player, Home home, int index) {
+        ConfirmationInput.open(player, ConfirmationInput.Type.REMOVE, home, index, () -> {
+            performDelete(player, home);
+            HomesGUI.open(home.getOwner(), player);
+        });
+    }
+
+    private void performDelete(Player player, Home home) {
         UUID uuid = home.getOwner();
         if (loadedHomes.containsKey(uuid)) {
             List<Home> homes = loadedHomes.get(uuid);
@@ -319,14 +335,64 @@ public class HomeManager {
                             + Bukkit.getOfflinePlayer(uuid).getName() + " (" + uuid + ")");
                     e.printStackTrace();
                 }
+                MessageUtil.send(player, MainConfig.getMessage("deletehome"),
+                        Placeholder.unparsed("home_name", home.getName() == null ? "" : home.getName()));
+                ConsoleLogUtil.logHomeDeleted(player, home);
+                SoundUtil.play(player, MainConfig.getSound("deletehome"));
                 return;
             }
         }
-
     }
 
-    public void rename(Player player, Home home) {
-        SetHomeCommand.renameHome(player, home, null);
+    public void rename(Player player, Home home, int index) {
+        SetHomeCommand.renameHome(player, home, null, index);
+    }
+
+    public void reorder(Player player, Home home) {
+        UUID owner = home.getOwner();
+        List<Home> homes = loadedHomes.get(owner);
+        if (homes == null) return;
+
+        List<Home> sorted = sortHomes(new ArrayList<>(homes));
+        int index = -1;
+        for (int i = 0; i < sorted.size(); i++) {
+            if (sorted.get(i).getCreated() == home.getCreated()) {
+                index = i;
+                break;
+            }
+        }
+        if (index <= 0) {
+            SchedulerUtil.runNextTick(plugin, () -> HomesGUI.open(owner, player));
+            return;
+        }
+
+        Collections.swap(sorted, index, index - 1);
+
+        int size = sorted.size();
+        for (int i = 0; i < size; i++) {
+            Home h = sorted.get(i);
+            int newPriority = size - i;
+            if (h.getPriority() != newPriority) {
+                h.setPriority(newPriority);
+                saveHome(h);
+            }
+        }
+
+        SchedulerUtil.runNextTick(plugin, () -> HomesGUI.open(owner, player));
+    }
+
+    public static List<Home> sortHomes(List<Home> homes) {
+        List<Home> sorted = new ArrayList<>(homes);
+        HomeSort sort = MainConfig.getDefaultSorting();
+        Comparator<Home> comparator = Comparator.comparingInt(Home::getPriority).reversed();
+        comparator = comparator.thenComparing(switch (sort) {
+            case CREATE -> Comparator.comparingLong(Home::getCreated);
+            case CREATE_REVERSED -> Comparator.comparingLong(Home::getCreated).reversed();
+            case LASTTP -> Comparator.<Home>comparingLong(h ->
+                    h.getLastTeleport() == -1 ? Long.MIN_VALUE : h.getLastTeleport()).reversed();
+        });
+        sorted.sort(comparator);
+        return sorted;
     }
 
     public UHomes getPlugin() {

@@ -19,6 +19,7 @@ public class Home {
     private Location location;
     private long created;
     private long lastTeleport;
+    private int priority;
 
     public Home(UUID owner, Location location) {
         this.created = System.currentTimeMillis();
@@ -29,6 +30,7 @@ public class Home {
         this.name = null;
         this.icon = null;
         this.lastTeleport = -1;
+        this.priority = 0;
     }
 
     public ReadableNBT getCompound() {
@@ -96,6 +98,14 @@ public class Home {
 
     public void setLastTeleport(long lastTeleport) {
         this.lastTeleport = lastTeleport;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
     }
 
     public void setOwner(UUID owner) {

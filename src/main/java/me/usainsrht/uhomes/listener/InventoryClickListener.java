@@ -5,6 +5,7 @@ import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import me.usainsrht.uhomes.Home;
 import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.command.SetHomeCommand;
+import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.gui.HomeButtonAction;
 import me.usainsrht.uhomes.gui.HomesGUI;
 import org.bukkit.Bukkit;
@@ -48,28 +49,26 @@ public class InventoryClickListener implements Listener {
                             .filter(home -> home.getCreated() == homeCompound.getLong("Created"))
                             .findFirst();
                     optionalHome.ifPresent(home -> {
+                        int index = homeCompound.getInteger("Index");
                         if (!cursor.getType().isAir()) {
                             home.setIcon(cursor);
-                            e.setCurrentItem(HomesGUI.getButton(home, homeCompound.getInteger("Index")));
+                            e.setCurrentItem(HomesGUI.getButton(home, index));
                             //HomesGUI.open(home.getOwner(), player);
                             return;
                         }
                         HomeButtonAction action = HomeButtonAction.getFromClick(e.getClick());
                         if (action == null) return;
+                        if (action == HomeButtonAction.REORDER
+                                && MainConfig.isManagingOthersHomes(player, home.getOwner())) return;
                         player.closeInventory();
                         switch (action) {
                             case TELEPORT -> {
                                 homeManager.teleport(player, home);
                             }
-                            case RELOCATE -> {
-                                homeManager.relocate(player, home);
-                                HomesGUI.open(home.getOwner(), player);
-                            }
-                            case RENAME -> homeManager.rename(player, home);
-                            case DELETE -> {
-                                homeManager.delete(player, home);
-                                HomesGUI.open(home.getOwner(), player);
-                            }
+                            case RELOCATE -> homeManager.relocate(player, home, index);
+                            case RENAME -> homeManager.rename(player, home, index);
+                            case DELETE -> homeManager.delete(player, home, index);
+                            case REORDER -> homeManager.reorder(player, home);
                         }
 
                     });

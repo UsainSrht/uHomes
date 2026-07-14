@@ -16,6 +16,9 @@ import me.usainsrht.uhomes.protected_area_interfaces.ProtectedAreaAPI;
 import me.usainsrht.uhomes.protected_area_interfaces.GriefPrevention;
 import me.usainsrht.uhomes.protected_area_interfaces.Lands;
 import me.usainsrht.uhomes.teleport.TeleportManager;
+import me.usainsrht.uhomes.placeholder.UHomesMiniPlaceholders;
+import me.usainsrht.uhomes.placeholder.UHomesPlaceholderExpansion;
+import me.usainsrht.uhomes.util.MMUtil;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import org.bukkit.Bukkit;
@@ -52,6 +55,7 @@ public final class UHomes extends JavaPlugin {
         this.protectedAreManager = new ProtectedAreManager(this, protectedAreaAPIs);
 
         loadConfig();
+        MMUtil.init(this);
 
         if (getServer().getPluginManager().isPluginEnabled("LuckPerms")) {
             try {
@@ -64,8 +68,13 @@ public final class UHomes extends JavaPlugin {
         }
 
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            new me.usainsrht.uhomes.placeholder.UHomesPlaceholderExpansion(this).register();
+            new UHomesPlaceholderExpansion(this).register();
             getLogger().info("Hooked into PlaceholderAPI!");
+        }
+
+        if (getServer().getPluginManager().isPluginEnabled("MiniPlaceholders")) {
+            UHomesMiniPlaceholders.build(this).register();
+            getLogger().info("Hooked into MiniPlaceholders!");
         }
 
         registerCommands();

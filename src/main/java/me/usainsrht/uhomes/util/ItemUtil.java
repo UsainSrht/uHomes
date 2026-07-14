@@ -1,8 +1,7 @@
 package me.usainsrht.uhomes.util;
 
+import me.usainsrht.uhomes.util.MMUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -18,10 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
-import static net.kyori.adventure.text.format.TextDecoration.State.FALSE;
-import static net.kyori.adventure.text.format.TextDecoration.State.NOT_SET;
-
 public class ItemUtil {
 
     public static ItemStack getItemFromYaml(ConfigurationSection config, TagResolver... placeholders) {
@@ -31,7 +26,7 @@ public class ItemUtil {
 
         if (config.isSet("name")) {
             String name = config.getString("name");
-            Component parsedName = MiniMessage.miniMessage().deserialize(name, placeholders).decorationIfAbsent(ITALIC, FALSE);
+            Component parsedName = MMUtil.deserializeItem(name, placeholders);
             itemMeta.displayName(parsedName);
         }
 
@@ -39,7 +34,7 @@ public class ItemUtil {
             List<String> lore = config.getStringList("lore");
             List<Component> parsedLore = new ArrayList<>();
             for (String line : lore) {
-                parsedLore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, FALSE));
+                parsedLore.add(MMUtil.deserializeItem(line, placeholders));
             }
             itemMeta.lore(parsedLore);
         }

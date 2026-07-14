@@ -9,6 +9,7 @@ public enum HomeButtonAction {
     RENAME,
     RELOCATE,
     DELETE,
+    REORDER,
 
     HomeButtonAction();
 
@@ -17,6 +18,7 @@ public enum HomeButtonAction {
         else if (clickType == ClickType.RIGHT) return MainConfig.getHomeButtonRightClick();
         else if (clickType == ClickType.SHIFT_LEFT) return MainConfig.getHomeButtonLeftClickWithShift();
         else if (clickType == ClickType.SHIFT_RIGHT) return MainConfig.getHomeButtonRightClickWithShift();
+        else if (clickType == ClickType.DROP || clickType == ClickType.CONTROL_DROP) return MainConfig.getHomeButtonDropClick();
         return null;
     }
 

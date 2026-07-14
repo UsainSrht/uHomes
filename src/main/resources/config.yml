@@ -14,6 +14,9 @@ messages:
     - "<#F78383><italic><invalid_characters>"
   home_name_already_in_use: "<red>You already have a home named <#F78383><italic><home_name></italic><red>."
   sethome: "<gray>Home <#F78383><italic><home_name></italic> <gray>successfully saved."
+  deletehome: "<gray>Home <#F78383><italic><home_name></italic> <gray>was deleted."
+  relocatehome: "<gray>Home <#F78383><italic><home_name></italic> <gray>was relocated to your current location."
+  confirmation_not_matched: "<red>Type <#F78383><italic><confirmation_text></italic> <red>to confirm. You entered <#F78383><italic><input></italic><red>."
   no_home_with_that_name: "<red>You don't have a home named <#F78383><italic><home_name></italic><red>."
   teleport: "<gray>You have teleported to <#F78383><italic><home_name></italic><gray>."
   teleport_start:
@@ -35,6 +38,9 @@ sounds:
   home_name_not_valid: entity.villager.no
   home_name_already_in_use: entity.villager.no
   sethome: block.respawn_anchor.set_spawn
+  deletehome: entity.item.break
+  relocatehome: block.respawn_anchor.set_spawn
+  confirmation_not_matched: entity.villager.no
   no_home_with_that_name: entity.villager.no
   teleport:
     - entity.enderman.teleport
@@ -89,11 +95,15 @@ unnamed_home: "unnamed_home_<index>"
 
 load_chunk_before_tp: true
 
-# amount of ticks a player shouldn't move to teleport home
-# ex: home.teleport.60 will teleport player to home in 3 seconds
-# 20 = 1 second
-# use bypass to instant tp ex: home.teleport.bypass
-home_teleport_time_permission: "home.teleport."
+# logs home create, teleport, rename, relocate, and delete actions to the server console
+console_logging: false
+
+# LuckPerms meta key for home teleport delay in ticks
+# ex: meta home-teleport-time = 60 teleports in 3 seconds
+# 20 ticks = 1 second
+# use home_teleport_time_bypass_permission for instant tp
+home_teleport_time_permission: "home-teleport-time"
+home_teleport_time_bypass_permission: "home.teleport.bypass"
 
 # prevents setting home on claimed areas when
 # lacking permissions.
@@ -121,6 +131,35 @@ gui:
   right_click: RENAME
   left_click_with_shift: RELOCATE
   right_click_with_shift: DELETE
+  drop_click: REORDER
+
+  # CREATE, CREATE_REVERSED, LASTTP
+  # used to sort homes with equal priority (priority 0); reordering assigns priorities to preserve manual order
+  default_sorting: CREATE
+
+  # customizable labels for <left_click>, <right_click>, etc. placeholders
+  action_labels:
+    TELEPORT: "Teleport"
+    RENAME: "Rename"
+    RELOCATE: "Relocate"
+    DELETE: "Delete"
+    REORDER: "Move up"
+
+  # optional info slot — set enabled: true and remove click lines from default_home_icon lore
+  info:
+    enabled: true
+    slot: 4
+    material: BOOK
+    name: "<yellow>Controls"
+    lore:
+      - ""
+      - " <yellow>Left Click: <left_click> "
+      - " <yellow>Right Click: <right_click> "
+      - " <yellow>Shift + Left Click: <shift_left_click> "
+      - " <yellow>Shift + Right Click: <shift_right_click> "
+      - " <yellow>Drop: <drop_click> "
+      - " <yellow>Click with item to set icon "
+      - ""
 
   default_home_icon:
     material: WHITE_BED
@@ -138,12 +177,6 @@ gui:
       - " <white>Last Teleport: "
       - "  <gold><last_teleport:'yyyy-MM-dd HH:mm:ss':'<red>Not teleported yet'> "
       - ""
-      - " <yellow>Left Click to teleport "
-      - " <yellow>Right Click to rename "
-      - " <yellow>Shift + Left Click to relocate "
-      - " <yellow>Shift + Right Click to delete "
-      - " <yellow>Click with item to set icon "
-      - ""
   no_home:
     material: BARRIER
     name: "<red>You have no home!"
@@ -159,25 +192,85 @@ gui:
       - " <yellow>Click to create new home! "
       - ""
 
-# The input method used for creating and renaming homes.
-# It will prioritize Dialog over Anvil GUI if both are enabled and the server version supports it (1.21.4+).
+# Input GUIs for naming, deleting, and relocating homes.
+# Dialog is used on 1.21.6+ when enabled; older versions fall back to the anvil GUI.
+# When a home is selected, slot 0 (anvil) and the dialog item body use the same icon as the homes GUI.
 input:
   dialog:
     enabled: true
     title: "<red>↓ Home name ↓"
     text: "Please enter a home name."
+    input_label: "Home Name"
+    confirm_button: "<green>✔ Confirm ✔"
+    home_name_not_valid: "<red>Invalid characters found in <#F78383><italic><home_name></italic><red>: <#F78383><italic><invalid_characters>"
+    home_name_limit: "<red>Name length must be between <#F78383><italic><min></italic> <red>and <#F78383><italic><max></italic><red>."
   anvil_gui:
     enabled: true
     title: "<red>↓ Home name ↓"
     text: " "
     slots:
+      # slot 0 is the home icon when renaming; only used as fallback when creating a new home
       0:
         material: WHITE_BED
+      # slot 1 closes the gui without saving
+      1:
+        material: RED_STAINED_GLASS_PANE
+        name: "<red>✖ Cancel ✖"
       2:
         material: LIME_BED
         name: "<green>✔ Confirm ✔"
     home_name_not_valid: "<red>↓ Invalid Characters ↓ <#F78383><italic><invalid_characters>"
     home_name_limit: "<red>↓ Name length should be <#F78383><italic><min></italic><red>-<#F78383><italic><max></italic> <red>↓"
+
+  remove:
+    confirmation_text: "confirm"
+    dialog:
+      enabled: true
+      title: "<red>↓ Delete home ↓"
+      text: "Type <confirmation_text> to delete <home_name>."
+      input_label: "Confirmation"
+      confirm_button: "<red>✔ Delete ✔"
+      cancel_button: "<gray>✖ Cancel"
+      not_matched: "<red>Type <confirmation_text> to confirm. You entered <#F78383><italic><input></italic><red>."
+    anvil_gui:
+      enabled: true
+      title: "<red>↓ Delete home ↓"
+      text: "confirm"
+      not_confirmed: "<red>↓ Type <confirmation_text> to delete <home_name> ↓"
+      slots:
+        # slot 0 is the home icon; text is the initial confirmation input
+        # slot 1 closes the gui without deleting
+        1:
+          material: RED_STAINED_GLASS_PANE
+          name: "<red>✖ Cancel ✖"
+        2:
+          material: RED_BED
+          name: "<red>✔ Delete ✔"
+
+  relocate:
+    confirmation_text: "confirm"
+    dialog:
+      enabled: true
+      title: "<yellow>↓ Relocate home ↓"
+      text: "Type <confirmation_text> to relocate <home_name> to your current location."
+      input_label: "Confirmation"
+      confirm_button: "<yellow>✔ Relocate ✔"
+      cancel_button: "<gray>✖ Cancel"
+      not_matched: "<red>Type <confirmation_text> to confirm. You entered <#F78383><italic><input></italic><red>."
+    anvil_gui:
+      enabled: true
+      title: "<yellow>↓ Relocate home ↓"
+      text: "confirm"
+      not_confirmed: "<red>↓ Type <confirmation_text> to relocate <home_name> ↓"
+      slots:
+        # slot 0 is the home icon; text is the initial confirmation input
+        # slot 1 closes the gui without relocating
+        1:
+          material: RED_STAINED_GLASS_PANE
+          name: "<red>✖ Cancel ✖"
+        2:
+          material: LIME_BED
+          name: "<yellow>✔ Relocate ✔"
 
 # worlds where players cannot set or relocate homes
 blacklisted_worlds:

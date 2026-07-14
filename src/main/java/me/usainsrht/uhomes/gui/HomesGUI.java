@@ -3,15 +3,16 @@ package me.usainsrht.uhomes.gui;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import me.usainsrht.uhomes.Home;
-import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.UHomes;
+import me.usainsrht.uhomes.manager.HomeManager;
 import me.usainsrht.uhomes.config.MainConfig;
 import me.usainsrht.uhomes.util.InventoryUtil;
 import me.usainsrht.uhomes.util.ItemUtil;
 import me.usainsrht.uhomes.util.MMUtil;
 import me.usainsrht.uhomes.util.PlayerUtil;
+import me.usainsrht.uhomes.util.SchedulerUtil;
+import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -24,47 +25,29 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
-import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
-import static net.kyori.adventure.text.format.TextDecoration.State.FALSE;
 
 public class HomesGUI {
 
     public static void open(UUID uuid, Player player) {
-        boolean viewingOthers = !uuid.equals(player.getUniqueId());
-        String titleString = viewingOthers
-                ? MainConfig.getHomesGuiTitleOthers()
-                : MainConfig.getHomesGuiTitle();
-        if (viewingOthers) {
-            String ownerName = PlayerUtil.getPlayerName(uuid);
-            if (ownerName != null) {
-                titleString = titleString.replace("<player>", ownerName);
-            }
+        if (!player.isOnline()) {
+            return;
         }
-        Component title = MiniMessage.miniMessage().deserialize(titleString);
-        Inventory inventory = Bukkit.createInventory(null, 3*9, title);
-
-        InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
-
-        player.openInventory(inventory);
-        player.setMetadata("HomesGUI", new FixedMetadataValue(UHomes.getInstance(), inventory));
-        player.setMetadata("HomesGUIOwner", new FixedMetadataValue(UHomes.getInstance(), uuid));
-
         HomeManager homeManager = UHomes.getInstance().getHomeManager();
-        CompletableFuture<List<Home>> future = homeManager.getHomes(uuid);
-        future.thenAccept(homes -> {
-            //             maximum 4 rows of homes // get 1 even if 0 homes
-            int rows = 2 + Math.min(Math.max((int)Math.ceil(homes.size() / 7f), 1), 4);
-            open(player, uuid, homes, rows*9, homeManager.getHomeLimit(uuid));
-        });
-
+        homeManager.getHomes(uuid).thenAccept(homes -> SchedulerUtil.runNextTick(UHomes.getInstance(), () -> {
+            if (!player.isOnline()) {
+                return;
+            }
+            // maximum 4 rows of homes // get 1 even if 0 homes
+            int rows = 2 + Math.min(Math.max((int) Math.ceil(homes.size() / 7f), 1), 4);
+            open(player, uuid, homes, rows * 9, homeManager.getHomeLimit(uuid));
+        }));
     }
 
     public static void open(Player player, List<Home> homes, int size, int maxHomes) {
@@ -72,6 +55,7 @@ public class HomesGUI {
     }
 
     public static void open(Player player, UUID ownerUuid, List<Home> homes, int size, int maxHomes) {
+        homes = HomeManager.sortHomes(homes);
         boolean viewingOthers = !ownerUuid.equals(player.getUniqueId());
         String titleString = viewingOthers
                 ? MainConfig.getHomesGuiTitleOthers()
@@ -82,7 +66,7 @@ public class HomesGUI {
                 titleString = titleString.replace("<player>", ownerName);
             }
         }
-        Component title = MiniMessage.miniMessage().deserialize(titleString);
+        Component title = MMUtil.deserialize(player, titleString);
         Inventory inventory = Bukkit.createInventory(null, size, title);
 
         InventoryUtil.fillInventory(inventory, ItemUtil.getItemFromYaml(MainConfig.getHomesGuiFillItem()));
@@ -99,6 +83,11 @@ public class HomesGUI {
         NBT.modify(setHome, nbt -> { nbt.setBoolean("sethome", true); });
         inventory.setItem(size-5, setHome);
 
+        if (MainConfig.isHomesGuiInfoEnabled()) {
+            ItemStack infoItem = ItemUtil.getItemFromYaml(MainConfig.getHomesGuiInfoItem(), MainConfig.getGuiActionPlaceholders());
+            inventory.setItem(MainConfig.getHomesGuiInfoSlot(), infoItem);
+        }
+
         int i = 0;
         for (Home home : homes) {
             ItemStack homeButton = getButton(home, i);
@@ -111,7 +100,7 @@ public class HomesGUI {
     }
 
     public static int getSlot(int index) {
-        return index < 8 ? 10+index : (index < 15 ? 12+index : (index < 22 ? 14+index : 16+index));
+        return index < 7 ? 10+index : (index < 14 ? 12+index : (index < 21 ? 14+index : 16+index));
     }
 
     public static ItemStack getButton(Home home, int index) {
@@ -133,12 +122,12 @@ public class HomesGUI {
             icon = home.getIcon();
             ItemMeta iconMeta = icon.getItemMeta();
 
-            Component displayName = MiniMessage.miniMessage().deserialize(defaultIcon.getString("name"), placeholders).decorationIfAbsent(ITALIC, FALSE);
+            Component displayName = MMUtil.deserializeItem(defaultIcon.getString("name"), placeholders);
             iconMeta.displayName(displayName);
 
             List<Component> lore = new ArrayList<>();
             for (String line : defaultIcon.getStringList("lore")) {
-                lore.add(MiniMessage.miniMessage().deserialize(line, placeholders).decorationIfAbsent(ITALIC, FALSE));
+                lore.add(MMUtil.deserializeItem(line, placeholders));
             }
             iconMeta.lore(lore);
 
@@ -160,6 +149,36 @@ public class HomesGUI {
         if (MainConfig.isHomesGuiIndexAmount()) icon.setAmount(index + 1);
 
         return icon;
+    }
+
+    public static List<DialogBody> getDialogBodies(Home home, int index, Component message) {
+        return getDialogBodies(home, index, message, null);
+    }
+
+    public static List<DialogBody> getDialogBodies(Home home, int index, Component message, @Nullable Component error) {
+        List<DialogBody> bodies = new ArrayList<>();
+        if (home != null && index >= 0) {
+            bodies.add(DialogBody.item(getButton(home, index))
+                    .showTooltip(true)
+                    .showDecorations(true)
+                    .build());
+        }
+        if (error != null) {
+            bodies.add(DialogBody.plainMessage(error));
+        }
+        bodies.add(DialogBody.plainMessage(message));
+        return bodies;
+    }
+
+    public static ItemStack getAnvilLeftItem(Home home, int index, @Nullable String displayNameOverride,
+                                             TagResolver... placeholders) {
+        ItemStack item = getButton(home, index).clone();
+        if (displayNameOverride != null) {
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(MMUtil.deserializeItem(displayNameOverride, placeholders));
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     public static String getHomeName(Home home, int index) {

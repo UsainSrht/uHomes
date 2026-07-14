@@ -3,11 +3,15 @@ package me.usainsrht.uhomes.config;
 import me.usainsrht.uhomes.IntArray;
 import me.usainsrht.uhomes.command.YamlCommand;
 import me.usainsrht.uhomes.gui.HomeButtonAction;
+import me.usainsrht.uhomes.gui.HomeSort;
 import me.usainsrht.uhomes.util.SoundUtil;
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class MainConfig {
@@ -27,7 +31,9 @@ public class MainConfig {
     private static String tpBetweenWorldsPerm;
     private static String unnamedHomeName;
     private static boolean loadChunkBeforeTp;
+    private static boolean consoleLogging;
     private static String homeTeleportTimePerm;
+    private static String homeTeleportTimeBypassPerm;
     private static boolean sethomeClaimCheck;
     private static boolean teleportClaimCheck;
 
@@ -42,6 +48,12 @@ public class MainConfig {
     private static HomeButtonAction homeButtonRightClick;
     private static HomeButtonAction homeButtonLeftClickWithShift;
     private static HomeButtonAction homeButtonRightClickWithShift;
+    private static HomeButtonAction homeButtonDropClick;
+    private static HomeSort defaultSorting;
+    private static boolean homesGuiInfoEnabled;
+    private static int homesGuiInfoSlot;
+    private static ConfigurationSection homesGuiInfoItem;
+    private static HashMap<HomeButtonAction, String> actionLabels;
 
     private static String setHomeGuiTitle;
     private static String setHomeGuiTitleNotValid;
@@ -50,8 +62,14 @@ public class MainConfig {
     private static boolean dialogEnabled;
     private static String dialogTitle;
     private static String dialogText;
+    private static String dialogInputLabel;
+    private static String dialogConfirmButton;
+    private static String dialogHomeNameNotValid;
+    private static String dialogHomeNameLimit;
     private static boolean anvilGuiEnabled;
     private static HashMap<Integer, ConfigurationSection> setHomeGuiSlots;
+    private static InputGuiConfig removeInput;
+    private static InputGuiConfig relocateInput;
 
     private static HashMap<String, String> worldNames;
     private static Set<String> blacklistedWorlds;
@@ -92,7 +110,9 @@ public class MainConfig {
         tpBetweenWorldsPerm = config.getString("teleport_between_worlds_permission");
         unnamedHomeName = config.getString("unnamed_home");
         loadChunkBeforeTp = config.getBoolean("load_chunk_before_tp");
+        consoleLogging = config.getBoolean("console_logging", false);
         homeTeleportTimePerm = config.getString("home_teleport_time_permission");
+        homeTeleportTimeBypassPerm = config.getString("home_teleport_time_bypass_permission", "home.teleport.bypass");
         sethomeClaimCheck = config.getBoolean("sethome_claim_check");
         teleportClaimCheck = config.getBoolean("teleport_claim_check");
 
@@ -108,10 +128,33 @@ public class MainConfig {
         homeButtonRightClick = HomeButtonAction.valueOf(config.getString("gui.right_click"));
         homeButtonLeftClickWithShift = HomeButtonAction.valueOf(config.getString("gui.left_click_with_shift"));
         homeButtonRightClickWithShift = HomeButtonAction.valueOf(config.getString("gui.right_click_with_shift"));
+        if (config.isSet("gui.drop_click")) {
+            homeButtonDropClick = HomeButtonAction.valueOf(config.getString("gui.drop_click"));
+        } else {
+            homeButtonDropClick = null;
+        }
+        defaultSorting = HomeSort.valueOf(config.getString("gui.default_sorting", "CREATE"));
+
+        homesGuiInfoEnabled = config.getBoolean("gui.info.enabled", false);
+        homesGuiInfoSlot = config.getInt("gui.info.slot", 4);
+        homesGuiInfoItem = config.getConfigurationSection("gui.info");
+
+        actionLabels = new HashMap<>();
+        if (config.contains("gui.action_labels")) {
+            config.getConfigurationSection("gui.action_labels").getKeys(false).forEach(key -> {
+                actionLabels.put(HomeButtonAction.valueOf(key), config.getString("gui.action_labels." + key));
+            });
+        }
 
         dialogEnabled = config.getBoolean("input.dialog.enabled", true);
         dialogTitle = config.getString("input.dialog.title");
         dialogText = config.getString("input.dialog.text");
+        dialogInputLabel = config.getString("input.dialog.input_label", "Home Name");
+        dialogConfirmButton = config.getString("input.dialog.confirm_button", "<green>✔ Confirm ✔");
+        dialogHomeNameNotValid = config.getString("input.dialog.home_name_not_valid",
+                "<red>Invalid characters found in <#F78383><italic><home_name></italic><red>: <#F78383><italic><invalid_characters>");
+        dialogHomeNameLimit = config.getString("input.dialog.home_name_limit",
+                "<red>Name length must be between <#F78383><italic><min></italic> <red>and <#F78383><italic><max></italic><red>.");
 
         anvilGuiEnabled = config.getBoolean("input.anvil_gui.enabled", true);
         setHomeGuiTitle = config.getString("input.anvil_gui.title");
@@ -124,6 +167,9 @@ public class MainConfig {
                 setHomeGuiSlots.put(Integer.parseInt(keyString), config.getConfigurationSection("input.anvil_gui.slots."+keyString));
             });
         }
+
+        removeInput = InputGuiConfig.fromConfig(config.getConfigurationSection("input.remove"), "confirm");
+        relocateInput = InputGuiConfig.fromConfig(config.getConfigurationSection("input.relocate"), "confirm");
 
         worldNames = new HashMap<>();
         config.getConfigurationSection("world_names").getKeys(false).forEach(key -> {
@@ -185,6 +231,43 @@ public class MainConfig {
         return homeButtonRightClickWithShift;
     }
 
+    public static HomeButtonAction getHomeButtonDropClick() {
+        return homeButtonDropClick;
+    }
+
+    public static HomeSort getDefaultSorting() {
+        return defaultSorting;
+    }
+
+    public static boolean isHomesGuiInfoEnabled() {
+        return homesGuiInfoEnabled && homesGuiInfoItem != null;
+    }
+
+    public static int getHomesGuiInfoSlot() {
+        return homesGuiInfoSlot;
+    }
+
+    public static ConfigurationSection getHomesGuiInfoItem() {
+        return homesGuiInfoItem;
+    }
+
+    public static String getActionLabel(@Nullable HomeButtonAction action) {
+        if (action == null) {
+            return "";
+        }
+        return actionLabels.getOrDefault(action, action.name());
+    }
+
+    public static TagResolver[] getGuiActionPlaceholders() {
+        return new TagResolver[] {
+                Placeholder.parsed("left_click", getActionLabel(homeButtonLeftClick)),
+                Placeholder.parsed("right_click", getActionLabel(homeButtonRightClick)),
+                Placeholder.parsed("shift_left_click", getActionLabel(homeButtonLeftClickWithShift)),
+                Placeholder.parsed("shift_right_click", getActionLabel(homeButtonRightClickWithShift)),
+                Placeholder.parsed("drop_click", getActionLabel(homeButtonDropClick)),
+        };
+    }
+
     public static String getWorldName(String name) {
         return worldNames.getOrDefault(name, name);
     }
@@ -225,8 +308,16 @@ public class MainConfig {
         return loadChunkBeforeTp;
     }
 
+    public static boolean isConsoleLogging() {
+        return consoleLogging;
+    }
+
     public static String getHomeTeleportTimePerm() {
         return homeTeleportTimePerm;
+    }
+
+    public static String getHomeTeleportTimeBypassPerm() {
+        return homeTeleportTimeBypassPerm;
     }
 
     public static boolean isSumHomeLimits() {
@@ -301,6 +392,22 @@ public class MainConfig {
         return dialogText;
     }
 
+    public static String getDialogInputLabel() {
+        return dialogInputLabel;
+    }
+
+    public static String getDialogConfirmButton() {
+        return dialogConfirmButton;
+    }
+
+    public static String getDialogHomeNameNotValid() {
+        return dialogHomeNameNotValid;
+    }
+
+    public static String getDialogHomeNameLimit() {
+        return dialogHomeNameLimit;
+    }
+
     public static boolean isAnvilGuiEnabled() {
         return anvilGuiEnabled;
     }
@@ -323,5 +430,13 @@ public class MainConfig {
 
     public static YamlCommand getSetHomeCommand() {
         return setHomeCommand;
+    }
+
+    public static InputGuiConfig getRemoveInput() {
+        return removeInput;
+    }
+
+    public static InputGuiConfig getRelocateInput() {
+        return relocateInput;
     }
 }
