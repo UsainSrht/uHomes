@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import static net.kyori.adventure.text.format.TextDecoration.ITALIC;
@@ -95,7 +95,7 @@ public class MMUtil {
             String format = argumentQueue.popOr("Format expected.").value();
             String fallback = argumentQueue.hasNext() ? argumentQueue.pop().value() : null;
             return Tag.inserting(context.deserialize(
-                    (time.toEpochSecond(ZoneOffset.UTC) != -1 || fallback == null)
+                    (time.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond() != -1 || fallback == null)
                             ? DateTimeFormatter.ofPattern(format).format(time)
                             : fallback));
         });

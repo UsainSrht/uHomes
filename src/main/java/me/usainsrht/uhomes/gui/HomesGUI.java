@@ -28,7 +28,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import javax.annotation.Nullable;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -111,9 +111,9 @@ public class HomesGUI {
         placeholders[1] = Formatter.number("y", location.getY());
         placeholders[2] = Formatter.number("z", location.getZ());
         placeholders[3] = Placeholder.parsed("world", MainConfig.getWorldName(location.getWorld().getName()));
-        placeholders[4] = Formatter.date("created", LocalDateTime.ofInstant(Instant.ofEpochMilli(home.getCreated()), ZoneOffset.UTC));
+        placeholders[4] = Formatter.date("created", LocalDateTime.ofInstant(Instant.ofEpochMilli(home.getCreated()), ZoneId.systemDefault()));
         // date formatter with fallback because of LastTeleport can be -1 (haven't teleported yet)
-        placeholders[5] = MMUtil.date("last_teleport", LocalDateTime.ofInstant(Instant.ofEpochMilli(home.getLastTeleport()), ZoneOffset.UTC));
+        placeholders[5] = MMUtil.date("last_teleport", LocalDateTime.ofInstant(Instant.ofEpochMilli(home.getLastTeleport()), ZoneId.systemDefault()));
         placeholders[6] = Placeholder.parsed("index", String.valueOf(index));
         placeholders[7] = Placeholder.parsed("name", getHomeName(home, index));
 
